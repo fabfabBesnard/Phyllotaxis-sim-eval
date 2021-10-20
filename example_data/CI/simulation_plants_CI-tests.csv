@@ -1,0 +1,10 @@
+PlantID	N_interval	organ_gain	organ_loss	measure	measure1_angle_sd	measure1_internode_sd	measure2_angle_sd	measure2_internode_sd	noise_level	permutation_length	permutation_likelihood	Note
+test1	19	10,15	6,18	FALSE					0			no noise/measure, segmentation errors only : isolated gain and losses
+test2	19	6,18	10,15	FALSE					0			no noise/measure, segmentation errors only : isolated gain and losses
+test3	19	10	11	FALSE					0			no noise/measure, segmentation errors only : 1 consecutive gain and loss
+test4	19	10,12	11,13	FALSE					0			no noise/measure, segmentation errors only : 2 consecutive gain/loss
+test5	19	5,6,7,8	13,14,15,16	FALSE					0			no noise/measure, segmentation errors only : long stretch of gain / loss
+test6	19			FALSE					0	2	1	no noise/measure, no seg error, permutation for internode < 5 mm
+test7	19	10,15	1,2,3,8,18,19, 20	FALSE					0			no noise/measure, segmentation errors only : 3 chops at both ends
+test8	19	1,1,10,15,21,21,21	3,8,18	FALSE					0			no noise/measure, segmentation errors only : 3 tails at both ends
+test9	19	1,2,3,10,15,21,21,21	1,2,3,8,18, 18,19,20	FALSE					0			no noise/measure, segmentation errors only : 3 overlapping chop/tail at both ends
