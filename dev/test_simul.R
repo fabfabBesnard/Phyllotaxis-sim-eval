@@ -1,6 +1,9 @@
 #setwd("~/Dropbox/Arabidopsis-eval/R_simul-eval")
-source("~/Dropbox/Arabidopsis-eval/R_simul-eval/source/sim_phyllo_sources.R")
-source("~/Dropbox/Arabidopsis-eval/R_simul-eval/source/plot_sequences_sources.R")
+local.repo="~/Dropbox/Arabidopsis-eval/Phyllotaxis-sim-eval/" #add the final '/'
+setwd(paste0(local.repo, "example_data"))
+source(paste0(local.repo, "source/sim_phyllo_sources.R"))
+source(paste0(local.repo, "source/plot_sequences_sources.R"))
+
 
 #################################
 #1. Make reference and plot it

@@ -9,7 +9,7 @@
 #### Distributed without any warranty.
 ###########################################################################
 #started 2021-04
-# last edit: 2021-10-14
+# last edit: 2021-11-04
 #Version v0
 
 ###############
@@ -31,7 +31,7 @@ The program ouputs 4 tables (.csv format) and (optionaly) 1 plot file (.pdf):
 - Rplots.pdf : (optional) plots of the alignment of the test sequence against the reference sequence
 
 The input file details the segmentation errors that will be introduced in the alignment. 
-Its format is fixed and must be respected for the program to run correctly
+Its format is fixed and must be respected for the program to run correctly.
 It is a table with one plant per row, precising the characteristics of the reference sequence and the scenario and parameters that modify it into the test sequence.
 Please refer to the readme section of the template input file.
 "
@@ -50,6 +50,8 @@ option_list = list(
               dest="noplots", help="Print plots"),
   make_option(c("-d", "--destination"), type="character", default=NULL, 
              help="destination folder", metavar="character"),
+  make_option(c("-R", "--repository"), type="character", default="~/Dropbox/Arabidopsis-eval/Phyllotaxis-sim-eval/", 
+              help="local path to 'Phyllotaxis-sim-eval' repository", metavar="character"),
   make_option(c("-v", "--verbose"), action="store_true", default=FALSE,
               help="increase verbosity")
 )
@@ -59,7 +61,7 @@ opt = parse_args(opt_parser)
 
 if (is.null(opt$file)){
   print_help(opt_parser)
-  stop("At least one argument must be supplied (input file).n", call.=FALSE)
+  stop("At least one argument must be supplied (input file).", call.=FALSE)
 }
 
 if (opt$help){
@@ -94,8 +96,12 @@ i_noise_pct=75
 ####################
 #### Body Run  #####
 ####################
-source("~/Dropbox/Arabidopsis-eval/Phyllotaxis-sim-eval/source/sim_phyllo_sources.R")
-source("~/Dropbox/Arabidopsis-eval/Phyllotaxis-sim-eval/source/plot_sequences_sources.R")
+local.repo=opt$repository #must end by '/Phyllotaxis-sim-eval/'
+if (!grepl("/$", local.repo)){#add an ending / if missing
+  local.repo=paste0(local.repo, "/")
+}
+source(paste0(local.repo, "source/sim_phyllo_sources.R"))
+source(paste0(local.repo, "source/plot_sequences_sources.R"))
 
 data=read.delim(opt$file, header=TRUE)
 
