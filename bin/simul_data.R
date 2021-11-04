@@ -94,8 +94,8 @@ i_noise_pct=75
 ####################
 #### Body Run  #####
 ####################
-source("~/Dropbox/Arabidopsis-eval/R_simul-eval/source/sim_phyllo_sources.R")
-source("~/Dropbox/Arabidopsis-eval/R_simul-eval/source/plot_sequences_sources.R")
+source("~/Dropbox/Arabidopsis-eval/Phyllotaxis-sim-eval/source/sim_phyllo_sources.R")
+source("~/Dropbox/Arabidopsis-eval/Phyllotaxis-sim-eval/source/plot_sequences_sources.R")
 
 data=read.delim(opt$file, header=TRUE)
 
