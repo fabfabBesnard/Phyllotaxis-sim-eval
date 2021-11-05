@@ -281,7 +281,7 @@ multiseq_plot(list(seqs, tests), align.df = dtw.res.align , prediction.eval = pr
 
 #integrate the highlight with a side/side comparison of groundtruth and predicted alignment:
 compare_plots(seq.ref=seqs, seq.test=tests, 
-              true_align=Ialign, dtw_results = dtw_results,  prediction.eval= prediction_eval)
+              true.align=Ialign, dtw.results = dtw_results,  prediction.eval= prediction_eval)
 
 #####
 #6. dtw Cost study

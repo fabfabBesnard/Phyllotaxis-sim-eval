@@ -9,13 +9,13 @@
 #### Distributed without any warranty.
 ###########################################################################
 #started 2021-04
-# last edit: 2021-11-04
+# last edit: 2021-11-05
 #Version v0
 
 ###############
 ##   Usage   ##
 ###############
-#Rscript simul_data.R -f input_table.csv -p
+#Rscript simul_data.R -f input_table.csv -p -o data1
 Program_Description="
   Script simul_data.R \n
 Description: \n
@@ -48,7 +48,9 @@ option_list = list(
               help="do not print plots [default]"),
   make_option(c("-p", "--plots"), action="store_false", 
               dest="noplots", help="Print plots"),
-  make_option(c("-d", "--destination"), type="character", default=NULL, 
+  make_option(c("-o", "--output_prefix"), type="character", default=NULL, 
+              help="prefix for all outputs", metavar="character"),
+  make_option(c("-D", "--destination"), type="character", default=NULL, 
              help="destination folder", metavar="character"),
   make_option(c("-R", "--repository"), type="character", default="~/Dropbox/Arabidopsis-eval/Phyllotaxis-sim-eval/", 
               help="local path to 'Phyllotaxis-sim-eval' repository", metavar="character"),
@@ -69,11 +71,14 @@ if (opt$help){
 }
 
 ## lines for Rconsole debug (uncomment to run this script from Rconsole)
-# setwd("~/Dropbox/Arabidopsis-eval/R_simul-eval/example_data")
+# setwd("~/Dropbox/Arabidopsis-eval/Phyllotaxis-sim-eval/example_data/Notebook_tests")
 # opt=list()
-# opt$file="simulation_plants_test1.csv"
+# opt$file="simulation_plants_nb.csv"
 # opt$noplots=FALSE
 # opt$verbose=TRUE
+# opt$repository="~/Dropbox/Arabidopsis-eval/Phyllotaxis-sim-eval"
+# opt$destination="~/Dropbox/Arabidopsis-eval/tests/"
+# opt$output_prefix="debug_"
 
 #############################
 ##  Hard-coded PARAMETERS  ##
@@ -93,9 +98,15 @@ i_Gsd=0.8
 #ratio of the biological noise/variation compared to the value of the internode, expressed in pct
 i_noise_pct=75
 
-####################
-#### Body Run  #####
-####################
+########################
+## up-load input data ##
+########################
+data=read.delim(opt$file, header=TRUE)
+
+#################################
+#### Set-up in/out options  #####
+#################################
+#Path to local code repository
 local.repo=opt$repository #must end by '/Phyllotaxis-sim-eval/'
 if (!grepl("/$", local.repo)){#add an ending / if missing
   local.repo=paste0(local.repo, "/")
@@ -103,8 +114,13 @@ if (!grepl("/$", local.repo)){#add an ending / if missing
 source(paste0(local.repo, "source/sim_phyllo_sources.R"))
 source(paste0(local.repo, "source/plot_sequences_sources.R"))
 
-data=read.delim(opt$file, header=TRUE)
+#Set-up the destination folder for the outputs
+if (is.null(opt$destination)){ opt$destination=getwd() }
+setwd(opt$destination)
 
+####################
+#### Body Run  #####
+####################
 #reminder: expected fields in the input config table:
 # PlantID
 # N_interval
@@ -249,22 +265,16 @@ for (i in 1:nrow(data)){
     }
   }
   
-  #####
-  #Set-up the destination folder for the outputs
-  #####
-  if (is.null(opt$destination)){ opt$destination=getwd() }
-  setwd(opt$destination)
-  
-  #####
-  #Print the alignment if asked by user
-  #####
-  if (!opt$noplots) {
-    multiseq_plot(list(seq.ref, seq.test$values), 
-                  align.df = seq.test$I,
-                  id.names = c("ref", "test"), 
-                  title=as.character(data[i,]$PlantID),
-                  ref.first = TRUE)
-  }
+  # #####
+  # #Print the alignment if asked by user
+  # #####
+  # if (!opt$noplots) {
+  #   multiseq_plot(list(seq.ref, seq.test$values), 
+  #                 align.df = seq.test$I,
+  #                 id.names = c("ref", "test"), 
+  #                 title=as.character(data[i,]$PlantID),
+  #                 ref.first = TRUE)
+  # }
   
   #####
   #Fill up output tables
@@ -283,12 +293,27 @@ for (i in 1:nrow(data)){
                                                     seq.test$O))
 }
 
-#Write out the data
+########################
+## Write out the data ##
+########################
+if (is.null(opt$output_prefix)){
+  opt$output_prefix="" } else { opt$output_prefix=paste0(opt$output_prefix,"_")}
+
+# plots:
+if (!opt$noplots) {
+  multiseq_plot_pdf(seq.ref=refseq, seq.test=testseq, 
+                true.align=align.intervals,
+                id.names=c("reference", "test"),
+                pdf.name=paste0(opt$output_prefix,"SimulatedPairedSequences.pdf"))
+}
+
+# Tables:
+#Note: destination folder has been set-up above in the loop
 colnames(refseq)=c("PlantID", "angles", "Internodes")
-write.csv(refseq, file="reference_sequences.csv", row.names = FALSE)
+write.csv(refseq, file=paste0(opt$output_prefix,"reference_sequences.csv"), row.names = FALSE)
 colnames(testseq)=c("PlantID", "angles", "Internodes")
-write.csv(testseq, file="test_sequences.csv",row.names = FALSE)
-write.csv(align.intervals, file="align_intervals.csv",row.names = FALSE)
-write.csv(align.organs, file="align_organs.csv",row.names = FALSE)
+write.csv(testseq, file=paste0(opt$output_prefix,"test_sequences.csv"),row.names = FALSE)
+write.csv(align.intervals, file=paste0(opt$output_prefix,"align_intervals.csv"),row.names = FALSE)
+write.csv(align.organs, file=paste0(opt$output_prefix,"align_organs.csv"),row.names = FALSE)
 
 cat("data generated - end of script \n")
