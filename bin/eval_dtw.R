@@ -9,7 +9,7 @@
 #### Distributed without any warranty.
 ###########################################################################
 # started: 2021-01-05
-# last edit: 2021-11-05
+# last edit: 2021-11-08
 #Version v0
 
 ###############
@@ -18,7 +18,7 @@
 #Requirements: the four input csv files.
 #Rscript eval_dtw.R -a dtw_res.csv -r reference_seq.csv -t test_seq.csv -i true_interval_align.csv 
 
-#Compulsory options:
+#mandatory options:
                   # -a (--alignment_dtw)
                   # -r (--reference_seq)
                   # -t (--test_seq)
@@ -29,7 +29,7 @@
 #                 -o (--output_prefix): prefix for all outputs
 #                 -R (--repository) path/to/Phyllotaxis-sim-eval/ (default is ~/Dropbox/Arabidopsis-eval/Phyllotaxis-sim-eval/)
 #                 -D (--destination) path/to/dest (default is current working directory)
-#                 --verbose
+#                 -v (--verbose)
 
 cat("Starting script to evaluate dtw alignment prediction \n")
 
@@ -56,7 +56,7 @@ option_list = list(
               help="prefix for all outputs", metavar="character"),
   make_option(c("-D", "--destination"), type="character", default=NULL, 
               help="destination folder", metavar="character"),
-  make_option(c("-R", "--repository"), type="character", default="~/Dropbox/Arabidopsis-eval/Phyllotaxis-sim-eval/", 
+  make_option(c("-R", "--repository"), type="character", default="~/Phyllotaxis-sim-eval/", 
               help="local path to 'Phyllotaxis-sim-eval' repository", metavar="character"),
   make_option(c("-v", "--verbose"), action="store_true", default=FALSE,
               help="increase verbosity")

@@ -9,13 +9,22 @@
 #### Distributed without any warranty.
 ###########################################################################
 #started 2021-04
-# last edit: 2021-11-05
+# last edit: 2021-11-08
 #Version v0
 
 ###############
 ##   Usage   ##
 ###############
 #Rscript simul_data.R -f input_table.csv -p -o data1
+# mandatory options:
+            # -f (--file) table file (.csv) describing the properties of the paired sequences to generate
+# + facultative options:
+            # -p (--plots): print plots
+            # -o (--output_prefix): prefix for all outputs
+            # -R (--repository) path/to/Phyllotaxis-sim-eval/ (default is ~/Dropbox/Arabidopsis-eval/Phyllotaxis-sim-eval/)
+            # -D (--destination) path/to/dest (default is current working directory)
+            # -v (--verbose)
+
 Program_Description="
   Script simul_data.R \n
 Description: \n
@@ -52,7 +61,7 @@ option_list = list(
               help="prefix for all outputs", metavar="character"),
   make_option(c("-D", "--destination"), type="character", default=NULL, 
              help="destination folder", metavar="character"),
-  make_option(c("-R", "--repository"), type="character", default="~/Dropbox/Arabidopsis-eval/Phyllotaxis-sim-eval/", 
+  make_option(c("-R", "--repository"), type="character", default="~/Phyllotaxis-sim-eval/", 
               help="local path to 'Phyllotaxis-sim-eval' repository", metavar="character"),
   make_option(c("-v", "--verbose"), action="store_true", default=FALSE,
               help="increase verbosity")
@@ -71,14 +80,14 @@ if (opt$help){
 }
 
 ## lines for Rconsole debug (uncomment to run this script from Rconsole)
-# setwd("~/Dropbox/Arabidopsis-eval/Phyllotaxis-sim-eval/example_data/Notebook_tests")
+# setwd("~/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInternodes/Phyllotaxis-sim-eval/example_data/Notebook_tests")
 # opt=list()
 # opt$file="simulation_plants_nb.csv"
-# opt$noplots=FALSE
+# opt$noplots=TRUE
 # opt$verbose=TRUE
-# opt$repository="~/Dropbox/Arabidopsis-eval/Phyllotaxis-sim-eval"
-# opt$destination="~/Dropbox/Arabidopsis-eval/tests/"
-# opt$output_prefix="debug_"
+# opt$repository="~/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInternodes/Phyllotaxis-sim-eval/"
+# opt$destination="~/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInternodes/tests/"
+# opt$output_prefix="setseed2_"
 
 #############################
 ##  Hard-coded PARAMETERS  ##
@@ -98,6 +107,8 @@ i_Gsd=0.8
 #ratio of the biological noise/variation compared to the value of the internode, expressed in pct
 i_noise_pct=75
 
+
+cat("Starting script to simulate paired sequences of phyllotaxis \n")
 ########################
 ## up-load input data ##
 ########################
@@ -316,4 +327,4 @@ write.csv(testseq, file=paste0(opt$output_prefix,"test_sequences.csv"),row.names
 write.csv(align.intervals, file=paste0(opt$output_prefix,"align_intervals.csv"),row.names = FALSE)
 write.csv(align.organs, file=paste0(opt$output_prefix,"align_organs.csv"),row.names = FALSE)
 
-cat("data generated - end of script \n")
+cat("simulated data generated - end of script \n")
