@@ -1,10 +1,11 @@
 #Created 2021-01-05
-#last edit 2021-05-03
+#last edit 2021-11-04
 
-setwd("~/Dropbox/Arabidopsis-eval/R_simul-eval/example_data")
-source("~/Dropbox/Arabidopsis-eval/R_simul-eval/source/sim_phyllo_sources.R")
-source("~/Dropbox/Arabidopsis-eval/R_simul-eval/source/plot_sequences_sources.R")
-source('~/Dropbox/Arabidopsis-eval/R_simul-eval/source/eval_dtw_sources.R')
+local.repo="~/Dropbox/Arabidopsis-eval/Phyllotaxis-sim-eval/" #add the final '/'
+setwd(paste0(local.repo, "example_data"))
+source(paste0(local.repo, "source/sim_phyllo_sources.R"))
+source(paste0(local.repo, "source/plot_sequences_sources.R"))
+source(paste0(local.repo, "source/eval_dtw_sources.R"))
 
 ###############################
 #1. simulation of sequences  ##
@@ -280,7 +281,7 @@ multiseq_plot(list(seqs, tests), align.df = dtw.res.align , prediction.eval = pr
 
 #integrate the highlight with a side/side comparison of groundtruth and predicted alignment:
 compare_plots(seq.ref=seqs, seq.test=tests, 
-              true_align=Ialign, dtw_results = dtw_results,  prediction.eval= prediction_eval)
+              true.align=Ialign, dtw.results = dtw_results,  prediction.eval= prediction_eval)
 
 #####
 #6. dtw Cost study

@@ -7,7 +7,7 @@
 #### Distributed without any warranty.
 ###########################################################################
 #started 2020-09-20
-# last edit: 2021-05-03
+# last edit: 2021-11-05
 #Version v0
 
 ##Content
@@ -55,7 +55,6 @@ seq_plot=function(seq, angle_ref=137){
   
   grid.arrange(p1, p2, nrow=2)
 }
-
 
 ###########################################################################
 # Plotting several unaligned sequences / or 2 sequences with realignment
@@ -383,17 +382,74 @@ multiseq_plot=function(mylist, align.df=NULL, prediction.eval= NULL,
   #return(seq.long)
 }
 
+multiseq_plot_pdf=function(seq.ref, seq.test, 
+                           true.align, id.names=NULL,
+                           PlantID=NULL, pdf.name="Simulated_paired_sequences.pdf", verbose=FALSE){
+  ## DESCRIPTION: outputs plots of simulated paired sequences in a pdf
+  # seq.ref [input]: dataframe formated as $PlantID $angles $internodes, contains the values of the reference sequence
+  # seq.test [input]: dataframe formated as $PlantID $angles $internodes, contains the values of the test sequence to be aligned against the reference sequence
+  # true.align [input]: dataframe formated as $PlantID $reference $modified $dtw
+  # #input [id.names]: a list of the name you want to give to the related sequences in the same order as input mylist, e.g: "reference" and "test"
+  # PlantID [input]: optional, name(s) of a PlantID(s) (if several given as c("id1", "id2")) if only the plot for specific plants is wanted. Default=NULL, all PlantIDs will be processed
+  # pdf.name [input]: name of the saved pdf
+  # verbose [input]: increase verbosity
+  #Checking/reformatting Inputs
+  seq.ref$PlantID=as.factor(seq.ref$PlantID)
+  seq.test$PlantID=as.factor(seq.test$PlantID)
+  true.align$PlantID=as.factor(true.align$PlantID)
+  if (!is.null(PlantID)){ #PlantID must be in the four input dataframes
+    if (sum(PlantID %in% levels(seq.ref$PlantID)) != length(PlantID)  &
+        sum(PlantID %in% levels(seq.test$PlantID)) != length(PlantID) &
+        sum(PlantID %in% levels(true.align$PlantID)) != length(PlantID)){
+      stop("Given PlantID is/are not found in all input dataframes. Check PlantID and/or input data.")
+    }
+  }
+  
+  #Main function body
+  if (is.null(PlantID)){ plotted_ids=levels(seq.ref$PlantID) } else { plotted_ids=PlantID }
+  if (length(plotted_ids==1)){pop_up_window=TRUE}
+  plot_page=list() #initialize the list of plots
+  i=1 #initialize a counter for the above list length
+  if (verbose){
+    cat("plots will be generated for: \n")
+    cat(plotted_ids, "\n")  
+  }
+  for (id in plotted_ids){
+    if (verbose) {print(paste("starting for", id))}
+    #Subset per PlantID and rearrange them to use the function `multiseq_plot` 
+    seq.ref.id=seq.ref[seq.ref$PlantID==id, ] #subset rows corresponding to the current PlantID
+    seq.ref.id=check_format_seq_df(seq.ref.id, verbose = verbose) #add the 'interval' row and remove 'PlantID' row
+    seq.test.id=seq.test[seq.test$PlantID==id, ] #same for seq.test
+    seq.test.id=check_format_seq_df(seq.test.id, verbose = verbose)
+    true.align.id=true.align[true.align$PlantID==id, ] #same subset for ground truth alignment
+    
+    #plot `multiseq_plot`
+    p1=multiseq_plot(list(seq.ref.id, seq.test.id), 
+                     align.df = true.align.id, 
+                     id.names=id.names,
+                     title=paste0("PlantID: ", id, "(simulated paired sequences)") )
+    plot_page[[i]]=p1
+    i=i+1 #update the next index of the list
+    
+  }#end of for loop
+  
+  multipage_plots <- marrangeGrob( plot_page, nrow=1, ncol=1)
+  ggsave(file=pdf.name, multipage_plots, width = 210, height = 297, units = "mm")
+}
+
 #############################################################################
 # Plotting ground truth alignments and prediction alignements (in one pdf page)
 #############################################################################
 compare_plots=function(seq.ref, seq.test, 
-                       true_align, dtw_results, prediction.eval= NULL,
-                       PlantID=NULL, PDF=TRUE, pdf.name="Compare_Prediction_Plots.pdf", verbose=FALSE){
+                       true.align, dtw.results, prediction.eval= NULL,
+                       PlantID=NULL, 
+                       id.names=NULL,
+                       PDF=TRUE, pdf.name="Compare_Prediction_Plots.pdf", verbose=FALSE){
   ## DESCRIPTION: display simulation & predicted re-alignment on the same screen : on the top, the true alignment (simulated) between a test and a reference sequences ; on the bottom the predicted alignment between the same sequences by a program (e.g. dtw)  
   # seq.ref [input]: dataframe formated as $PlantID $angles $internodes, contains the values of the reference sequence
   # seq.test [input]: dataframe formated as $PlantID $angles $internodes, contains the values of the test sequence to be aligned against the reference sequence
-  # true_align [input]: dataframe formated as $PlantID $reference $modified $dtw
-  # dtw_results [input]: dataframe formated as $PlantID $intervals $reference $test $dtw $cost, output from function `convert_dtw_results` 
+  # true.align [input]: dataframe formated as $PlantID $reference $modified $dtw
+  # dtw.results [input]: dataframe formated as $PlantID $intervals $reference $test $dtw $cost, output from function `convert_dtw_results` 
   # prediction.eval [input]: a dataframe containing the evaluation of prediction alignment for each indices of the test sequence
   # (given by 'evaluate_align_prediction' function in eval_dtw_source.R)
   # This will highlight in RED the interval where the prediction is evaluated as error and in ORANGE where the prediction is ambiguous
@@ -405,12 +461,12 @@ compare_plots=function(seq.ref, seq.test,
   #Checking/reformatting Inputs
   seq.ref$PlantID=as.factor(seq.ref$PlantID)
   seq.test$PlantID=as.factor(seq.test$PlantID)
-  dtw_results$PlantID=as.factor(dtw_results$PlantID)
+  dtw.results$PlantID=as.factor(dtw.results$PlantID)
   if (!is.null(PlantID)){ #PlantID must be in the four input dataframes
     if (sum(PlantID %in% levels(seq.ref$PlantID)) != length(PlantID)  &
         sum(PlantID %in% levels(seq.test$PlantID)) != length(PlantID) &
-        sum(PlantID %in% levels(true_align$PlantID)) != length(PlantID) &
-        sum(PlantID %in% levels(dtw_results$PlantID)) != length(PlantID) ){
+        sum(PlantID %in% levels(true.align$PlantID)) != length(PlantID) &
+        sum(PlantID %in% levels(dtw.results$PlantID)) != length(PlantID) ){
       stop("Given PlantID is/are not found in all input dataframes. Check PlantID and/or input data.")
     }
   }
@@ -431,25 +487,30 @@ compare_plots=function(seq.ref, seq.test,
     seq.ref.id=check_format_seq_df(seq.ref.id, verbose = verbose) #add the 'interval' row and remove 'PlantID' row
     seq.test.id=seq.test[seq.test$PlantID==id, ] #same for seq.test
     seq.test.id=check_format_seq_df(seq.test.id, verbose = verbose)
-    true_align.id=true_align[true_align$PlantID==id, ] #same subset for ground truth alignment
-    dtw_results.id=dtw_results[dtw_results$PlantID==id, ] #same subset for dtw_results + reformat/select useful fields
-    dtw_results.id=cbind.data.frame(reference=dtw_results.id$reference, modified=dtw_results.id$test, dtw=dtw_results.id$dtw)
+    true.align.id=true.align[true.align$PlantID==id, ] #same subset for ground truth alignment
+    dtw.results.id=dtw.results[dtw.results$PlantID==id, ] #same subset for dtw.results + reformat/select useful fields
+    dtw.results.id=cbind.data.frame(reference=dtw.results.id$reference, modified=dtw.results.id$test, dtw=dtw.results.id$dtw)
     if (!is.null(prediction.eval)){
     prediction.eval.id=prediction.eval[prediction.eval$PlantID==id,] #same subset for the evaluation
     }
     
     #plot `multiseq_plot`
-    p1=multiseq_plot(list(seq.ref.id, seq.test.id), align.df = true_align.id, title=paste0("PlantID: ", id, "/ True Simulation") )
+    p1=multiseq_plot(list(seq.ref.id, seq.test.id), align.df = true.align.id, 
+                     id.names=id.names, 
+                     title=paste0("PlantID: ", id, "/ True Simulation") )
     if (is.null(prediction.eval)){
-      p2=multiseq_plot(list(seq.ref.id, seq.test.id), align.df = dtw_results.id, title=paste0("PlantID: ", id, "/ Prediction") )  
+      p2=multiseq_plot(list(seq.ref.id, seq.test.id), align.df = dtw.results.id, 
+                       id.names=id.names, 
+                       title=paste0("PlantID: ", id, "/ Prediction") )  
     } else {
-      p2=multiseq_plot(list(seq.ref.id, seq.test.id), align.df = dtw_results.id, prediction.eval = prediction.eval.id,
+      p2=multiseq_plot(list(seq.ref.id, seq.test.id), align.df = dtw.results.id, prediction.eval = prediction.eval.id,
+                       id.names=id.names, 
                        title=paste0("PlantID: ", id, "/ Prediction") )  
     }
     sideside_plots[[i]]=p1
     sideside_plots[[i+1]]=p2
     i=i+2 #update the next index of the list
-  }
+  }#end of for-loop
   
   if (PDF){#Saving as pdf
     multipage_plots <- marrangeGrob(sideside_plots, nrow=2, ncol=1)
