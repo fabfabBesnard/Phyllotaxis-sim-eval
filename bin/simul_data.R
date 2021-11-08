@@ -83,14 +83,15 @@ if (opt$help){
 }
 
 ## lines for Rconsole debug (uncomment to run this script from Rconsole)
-# setwd("~/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInternodes/Phyllotaxis-sim-eval/example_data/Notebook_tests")
+# setwd("~/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInternodes/experiments/Exp1/")
 # opt=list()
-# opt$file="simulation_plants_nb.csv"
-# opt$noplots=TRUE
+# opt$file="E1_INPUT_test-noiselevels.csv"
+# opt$noplots=FALSE
 # opt$repository="~/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInternodes/Phyllotaxis-sim-eval/"
 # opt$destination="~/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInternodes/tests/"
-# opt$output_prefix="setseed1_"
-# opt$setseed=10
+# opt$output_prefix="debug"
+# opt$setseed=NULL
+# opt$verbose=TRUE
 
 #############################
 ##  Hard-coded PARAMETERS  ##
@@ -186,7 +187,7 @@ for (i in 1:nrow(data)){
   } else {
     GAIN=as.numeric(unlist(strsplit(as.character(data[i,]$organ_gain), ",")))
   }
-  if (length(GAIN)==0){GAIN=NULL}
+  if (length(GAIN)==0 || is.na(GAIN)){GAIN=NULL}
   ## Losses
   if(length(grep("random",data[i,]$organ_loss))>0){
     nb_loss=as.numeric(unlist(strsplit(as.character(data[i,]$organ_loss), ","))[2]) # get the nber of organs to insert randomly
@@ -195,7 +196,7 @@ for (i in 1:nrow(data)){
   } else {
     LOSS=as.numeric(unlist(strsplit(as.character(data[i,]$organ_loss), ",")))
   }
-  if (length(LOSS)==0){LOSS=NULL}
+  if (length(LOSS)==0 || is.na(LOSS)){LOSS=NULL}
   if (is.null(GAIN) && is.null(LOSS)){seg_errors=FALSE} else {seg_errors=TRUE}
   
   # two measures versus noise
@@ -281,17 +282,6 @@ for (i in 1:nrow(data)){
                                           i_threshold = permut_length, proba = permut_proba, verbose = opt$verbose )
     }
   }
-  
-  # #####
-  # #Print the alignment if asked by user
-  # #####
-  # if (!opt$noplots) {
-  #   multiseq_plot(list(seq.ref, seq.test$values), 
-  #                 align.df = seq.test$I,
-  #                 id.names = c("ref", "test"), 
-  #                 title=as.character(data[i,]$PlantID),
-  #                 ref.first = TRUE)
-  # }
   
   #####
   #Fill up output tables

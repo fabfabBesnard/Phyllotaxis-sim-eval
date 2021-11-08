@@ -1,8 +1,8 @@
 #setwd("~/Dropbox/Arabidopsis-eval/R_simul-eval")
-local.repo="~/Dropbox/Arabidopsis-eval/Phyllotaxis-sim-eval/" #add the final '/'
-setwd(paste0(local.repo, "example_data"))
-source(paste0(local.repo, "source/sim_phyllo_sources.R"))
-source(paste0(local.repo, "source/plot_sequences_sources.R"))
+local.repo="~/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInternodes/" #add the final '/'
+setwd(paste0(local.repo, "tests"))
+source(paste0(local.repo, "Phyllotaxis-sim-eval/source/sim_phyllo_sources.R"))
+source(paste0(local.repo, "Phyllotaxis-sim-eval/source/plot_sequences_sources.R"))
 
 
 #################################
@@ -593,7 +593,7 @@ multiseq_plot(list(N1.seq, N1.err.seg$values), align.df = N1.err.seg$I)
 
 ###################
 ## Specific issue of overlapping Chops and and Tails at the end
-## October 2020
+## October 2021
 ################
 N=19 #so 20 organs
 alpha=137.5
@@ -801,3 +801,26 @@ test.seg=segmentation_errors(in.seq = init.seq, align.list = init.align,
                              organ_loss = LOSS, verbose = TRUE)
 multiseq_plot(mylist=list(init.seq, test.seg$values), align.df = test.seg$I, 
               id.names=c("init", "test"), verbose=TRUE)
+
+###################
+## Pb to initiaise testnoise
+## November 2021
+################
+N=19 #so 20 organs
+alpha=137.5
+a_sd=18.5
+i_Gsd=0.8
+i_noise_pct=75
+init.seq=make_refseq(N, alpha, a_sd, i_Gsd, i_noise_pct)
+init.align=make_align_list(N)
+
+#####
+GAIN=NULL
+LOSS=NULL
+test.seg=segmentation_errors(in.seq = init.seq, align.list = init.align,
+                             organ_gain=GAIN,
+                             organ_loss = LOSS, verbose = TRUE)
+
+multiseq_plot(mylist=list(init.seq, test.seg$values), align.df = test.seg$I, 
+              id.names=c("init", "test"), verbose=TRUE)
+

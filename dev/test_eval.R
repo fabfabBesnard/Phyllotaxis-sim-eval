@@ -1,11 +1,11 @@
 #Created 2021-01-05
 #last edit 2021-11-04
 
-local.repo="~/Dropbox/Arabidopsis-eval/Phyllotaxis-sim-eval/" #add the final '/'
-setwd(paste0(local.repo, "example_data"))
-source(paste0(local.repo, "source/sim_phyllo_sources.R"))
-source(paste0(local.repo, "source/plot_sequences_sources.R"))
-source(paste0(local.repo, "source/eval_dtw_sources.R"))
+local.repo="~/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInternodes/" #add the final '/'
+setwd(paste0(local.repo, "tests"))
+source(paste0(local.repo, "Phyllotaxis-sim-eval/source/sim_phyllo_sources.R"))
+source(paste0(local.repo, "Phyllotaxis-sim-eval/source/plot_sequences_sources.R"))
+source(paste0(local.repo, "Phyllotaxis-sim-eval/source/eval_dtw_sources.R"))
 
 ###############################
 #1. simulation of sequences  ##
@@ -41,7 +41,7 @@ if (source == "re-use data"){
   
   ## Initial sequence (e.g. biological real values)
   ##Case1: Completely simulated values
-  N1=25
+  N1=19
   alpha=137.5
   a_sd=18.5 #biological/natural gaussian noise on angle values
   i_Gsd=0.8 #biological/natural gaussian noise on internode values
@@ -58,7 +58,7 @@ if (source == "re-use data"){
   seg_errors=TRUE #whether the initial seq will be affected or not by segmentation errors
   permutation=FALSE #whether close organs can be permuted in the test sequence only
   measure=FALSE #means that the initial seq (e.g. theoretical exact biological value) will be measured twice (e.g. by hand and computer) and the two measure will be compared
-  noise=FALSE  #no measurement, just noise is added to initial sequence
+  noise=TRUE  #no measurement, just noise is added to initial sequence
   
   #Other parameters linked to main parameters
   ## Segmentation Errors: 
@@ -66,8 +66,8 @@ if (source == "re-use data"){
     #Examples of segmentation errors
     
     #Note: overlapping position (merge/split)
-    GAIN=c(15)
-    LOSS=c(15)
+    # GAIN=c(15)
+    # LOSS=c(15)
     
     #Note: test with chops at both ends
     # GAIN=c(10,15)
@@ -102,8 +102,8 @@ if (source == "re-use data"){
     # LOSS=LOSS[order(LOSS)]
     
     #Note: it also possible to define GAIN and LOSS as null (equivalent to setting seg_errors=FALSE)
-    # GAIN=NULL
-    # LOSS=NULL
+    GAIN=NULL
+    LOSS=NULL
   }
   if (noise){
     meanA=mean(seq$angles) #used to scale the level of noise on angles
