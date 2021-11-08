@@ -21,6 +21,7 @@
 # + facultative options:
             # -p (--plots): print plots
             # -o (--output_prefix): prefix for all outputs
+            # -s (--setseed): provides a seed for the random values generated in simulated sequences
             # -R (--repository) path/to/Phyllotaxis-sim-eval/ (default is ~/Dropbox/Arabidopsis-eval/Phyllotaxis-sim-eval/)
             # -D (--destination) path/to/dest (default is current working directory)
             # -v (--verbose)
@@ -59,6 +60,8 @@ option_list = list(
               dest="noplots", help="Print plots"),
   make_option(c("-o", "--output_prefix"), type="character", default=NULL, 
               help="prefix for all outputs", metavar="character"),
+  make_option(c("-s", "--setseed"), type="numeric", default=NULL, 
+              help="give a number for seed", metavar="numeric"),
   make_option(c("-D", "--destination"), type="character", default=NULL, 
              help="destination folder", metavar="character"),
   make_option(c("-R", "--repository"), type="character", default="~/Phyllotaxis-sim-eval/", 
@@ -84,10 +87,10 @@ if (opt$help){
 # opt=list()
 # opt$file="simulation_plants_nb.csv"
 # opt$noplots=TRUE
-# opt$verbose=TRUE
 # opt$repository="~/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInternodes/Phyllotaxis-sim-eval/"
 # opt$destination="~/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInternodes/tests/"
-# opt$output_prefix="setseed2_"
+# opt$output_prefix="setseed1_"
+# opt$setseed=10
 
 #############################
 ##  Hard-coded PARAMETERS  ##
@@ -100,13 +103,11 @@ alpha=137.5
 #angle_sd (correspond to real biological variation)
 a_sd=18.5 #-> cf Guedon et al. JTB 2013: standard deviation a_sd=18.5
 
-
 ## Internodes
 #Internode_noise: gaussian noise: mean=0, sd=i_noise
 i_Gsd=0.8
 #ratio of the biological noise/variation compared to the value of the internode, expressed in pct
 i_noise_pct=75
-
 
 cat("Starting script to simulate paired sequences of phyllotaxis \n")
 ########################
@@ -146,6 +147,11 @@ setwd(opt$destination)
 # permutation_length
 # permutation_likelihood
 # Note
+
+if (!is.null(opt$setseed)){
+  if (opt$verbose){ print(paste("A seed will be given for the simulation: seed =", opt$setseed))}
+  set.seed(opt$setseed)
+}
 
 #Initialize output tables:
 refseq=data.frame(PlantID=NULL,
