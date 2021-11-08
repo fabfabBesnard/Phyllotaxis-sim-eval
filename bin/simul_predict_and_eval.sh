@@ -30,6 +30,9 @@ echo "	-D, --destination (optional)
 echo "	-o, --output_prefix (optional)
 	prefix for all outputs files
 "
+echo "	-s, --setseed (optional)
+	provides a seed for the random values generated in simulated sequences
+"
 echo "	-p, --plots (optional)
 	generate plots
 "
@@ -53,6 +56,7 @@ exit 1;}
 # -R $local \
 # -D $dest \
 # -o testbash \
+# --setseed 123 \
 # --detail --plots --verbose 
 
 ####################
@@ -92,6 +96,10 @@ while [ "$1" != "" ]; do
     shift
     output_prefix=$1
     ;;
+  -s | --setseed)
+    shift
+    options_step1+=" --setseed "$1
+    ;;  
   -p | --plots)
     plots='true'
     options_step3+=" --plots"
