@@ -31,7 +31,11 @@ echo "	-o, --output_prefix (optional)
 	prefix for all outputs files
 "
 echo "	-s, --setseed (optional)
-	provides a seed for the random values generated in simulated sequences
+	specifies a seed for the random values generated in simulated sequences
+"
+echo "	-dtw, --dtw_options (optional)
+	specifies any input oarguments that is accepted by the 'sm-dtw' functions (e.g. --free-ends; --beam_size; etc...). 
+  Includes all options into double quotes "", several options can be passed at the same time (e.g. "--constraint='merge_split' --free-ends 0.4")
 "
 echo "	-p, --plots (optional)
 	generate plots
@@ -47,10 +51,12 @@ echo "  -v, --verbose:
 "
 exit 1;}
 
-# Running example
+# Running example:
+## Set I/O variables:
 # local=path/to/local/Phyllotaxis-sim-eval
 # dest=path/to/output/folder
 
+## Run the command:
 # bash $local/bin/simul_predict_and_eval.sh \
 # --file $local/example_data/Notebook_tests/simulation_plants_nb.csv \
 # -R $local \
@@ -77,6 +83,7 @@ function print_verbose {
 
 options_step1=""
 options_step3=""
+options_dtw=""
 
 while [ "$1" != "" ]; do
   case $1 in
@@ -99,6 +106,10 @@ while [ "$1" != "" ]; do
   -s | --setseed)
     shift
     options_step1+=" --setseed "$1
+    ;;  
+  -dtw | --dtw_options)
+    shift
+    options_dtw=$1
     ;;  
   -p | --plots)
     plots='true'
@@ -155,7 +166,7 @@ source ~/softwares/miniconda3/bin/activate
 conda activate romi
 
 align_csv_database.py $dest/${output_prefix}_reference_sequences.csv $dest/${output_prefix}_test_sequences.csv \
-$output_prefix --free_ends 0.4
+$output_prefix $options_dtw
 
 ## Step3: Assess the alignment prediction made by sm-dtw
 print_verbose "Step3: Assess the alignment prediction made by sm-dtw"
