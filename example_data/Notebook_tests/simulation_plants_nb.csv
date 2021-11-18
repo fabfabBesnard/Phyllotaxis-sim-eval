@@ -1,6 +1,7 @@
-PlantID	N_interval	organ_gain	organ_loss	measure	measure1_angle_sd	measure1_internode_sd	measure2_angle_sd	measure2_internode_sd	noise_level	permutation_length	permutation_likelihood	Note
-Plant#1	23	3,3,8	21,22,23,24	TRUE	6	0.5	60	10		2	1	test seg_error=TRUE / measure= TRUE / noise=FALSE, permutation=TRUE
-Plant#2	14	random,2	random,3	FALSE					0.25			test seg_error=TRUE  + random / measure= FALSE / noise=TRUE, permutation=FALSE/empty
-Plant#3	14	random,2	3,6	FALSE					0.25			test seg_error=TRUE (one random, one fixed) / measure= FALSE / noise=TRUE, permutation=FALSE/empty
-Plant#4	19	1,1,1,21,21,21	10,11,12,13	FALSE						2	0.5	test seg_error=TRUE (one random, one fixed) / measure= FALSE / noise=FALSE, permutation=TRUE
-Plant#5	19			FALSE					0.1			test no segmentation error, only noise (test seg_error=FALSE / measure= FALSE / noise=TRUE, permutation=FALSE)
+PlantID	N_interval	organ_gain	organ_loss	Noise_or_Measures	measure1_angle_sd	measure1_internode_sd	measure2_angle_sd	measure2_internode_sd	sd_noise_level	sd_noise_scale	mean_noise_bias	permutation_length	permutation_likelihood	Note
+Plant#1	23	3,3,8	21,22,23,24	measures	6	0.5	60	10				2	1	test seg_error=TRUE / measure= TRUE / noise=FALSE, permutation=TRUE
+Plant#2	14	random,2	random,3	noise					0.25	sd				test seg_error=TRUE  + random / measure= FALSE / noise=TRUE, permutation=FALSE/empty
+Plant#3	14	random,2	3,6	NOISE					0.25	mean				test seg_error=TRUE (one random, one fixed) / measure= FALSE / noise=TRUE, permutation=FALSE/empty
+Plant#4	15	4,12	8,14	Noise					(35,3)	absolute				
+Plant#5	19	1,1,1,21,21,21	10,11,12,13	noise						mean		2	0.5	test seg_error=TRUE (one random, one fixed) / measure= FALSE / noise=FALSE, permutation=TRUE
+Plant#6	19			NOISE					0.2	sd				test no segmentation error, only noise (test seg_error=FALSE / measure= FALSE / noise=TRUE, permutation=FALSE)

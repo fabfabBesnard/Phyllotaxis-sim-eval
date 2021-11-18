@@ -1,5 +1,5 @@
 #Created 2021-01-05
-#last edit 2021-11-04
+#last edit 2021-11-18
 
 local.repo="~/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInternodes/" #add the final '/'
 setwd(paste0(local.repo, "tests"))
@@ -30,14 +30,7 @@ if (source == "re-use data"){
   Ialign=read.csv("/home/fabfab/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInternodes/tests/testbash/testbash3_align_intervals.csv")
   Oalign=read.csv("/home/fabfab/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInternodes/tests/testbash/testbash3_align_organs.csv")
   tests=read.csv("/home/fabfab/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInternodes/tests/testbash/testbash3_test_sequences.csv")
-  colnames(tests)[3]="internodes"} else { #case of a new single_plants
-  print_info=function(seg_errors, permutation, measure, noise){
-    cat("reminder of main scenario parameters \n")
-    print(paste("seg_errors =",seg_errors))
-    print(paste("permutation =", permutation))
-    print(paste("measure =", measure))
-    print(paste("noise =", noise))
-  }
+  colnames(tests)[3]="internodes"} else {
   
   ## Initial sequence (e.g. biological real values)
   ##Case1: Completely simulated values
@@ -57,8 +50,7 @@ if (source == "re-use data"){
   ##Main parameters of the scenario
   seg_errors=TRUE #whether the initial seq will be affected or not by segmentation errors
   permutation=FALSE #whether close organs can be permuted in the test sequence only
-  measure=FALSE #means that the initial seq (e.g. theoretical exact biological value) will be measured twice (e.g. by hand and computer) and the two measure will be compared
-  noise=TRUE  #no measurement, just noise is added to initial sequence
+  Noise_or_Measures="Measures" #[Noise or Measures]"Noise": test sequence is derived from ref seq with noise ; "measures": both ref and test sequences are a measure (with "noise") a the same sequence.
   
   #Other parameters linked to main parameters
   ## Segmentation Errors: 
@@ -105,18 +97,17 @@ if (source == "re-use data"){
     #GAIN=NULL
     #LOSS=NULL
   }
-  if (noise){
-    meanA=mean(seq$angles) #used to scale the level of noise on angles
-    meanI=mean(seq$internodes) #used to scale the level of noise on internodes
-    #Noise levels
-    Noise_levels=0.5
+  if (Noise_or_Measures == "Noise"){
+    sd_noise_level = c(0.5, 0.5)
+    sd_noise_scale = "sd" # "sd", "mean" or absolute
+    mean_noise_bias = c(0, 0)
   }
   if (permutation){
     #Permutation will be applied to each possible situations depending on selected scenario: measurement (hence only automated measurement), noisy seq, seq with only segmentation errors
     permut_length=2 #maximum length (in mm) of an internode whose organ pair is susceptible to be permuted
     permut_proba=1 #proba to make a permut when it's possible
   }
-  if (measure){
+  if (Noise_or_Measures == "Measures"){
     #With a measure
     manual_anoise_sd=6 #(in degree, noise with gaussian distrib. of zero mean)
     manual_inoise_sd=0.5 #(in mm, noise with gaussian distrib. of zero mean)
@@ -128,10 +119,10 @@ if (source == "re-use data"){
   ##Generating the sequences based on selected parameters & scenario
   ###### 
   #(run)
-  if (measure){
+  if (Noise_or_Measures == "Measures"){
     #With a measure
-    seq.ref=make_measure(seq, manual_anoise_sd, manual_inoise_sd)
-    seq.aut=make_measure(seq, aut_anoise_sd, aut_inoise_sd)
+    seq.ref=make_measure(seq, anoise_sd = manual_anoise_sd, inoise_sd = manual_inoise_sd, noise.scale = "absolute")
+    seq.aut=make_measure(seq, anoise_sd = aut_anoise_sd, inoise_sd = aut_inoise_sd, noise.scale = "absolute")
     
     if (seg_errors){
       seq.test=segmentation_errors(seq.aut,listN1,
@@ -145,12 +136,11 @@ if (source == "re-use data"){
                                           i_threshold = permut_length, proba = permut_proba, verbose = TRUE )
     }
     
-  } else if (noise) {
+  } else if (Noise_or_Measures == "Noise") {
     seq.ref=seq
-    anoise_sd=Noise_levels*meanA #(in degree, noise with gaussian distrib. of zero mean)
-    inoise_sd=Noise_levels*meanI #(in mm, noise with gaussian distrib. of zero mean)
-    seq.noise=make_measure(seq, anoise_sd, inoise_sd)
-    
+    seq.noise=make_measure(seq, anoise_sd = sd_noise_level[1], inoise_sd = sd_noise_level[2],
+                           noise.scale = sd_noise_scale, 
+                           anoise.mean = mean_noise_bias[1], inoise.mean = mean_noise_bias[2])
     if (seg_errors){
       seq.test=segmentation_errors(seq.noise,listN1,
                                    organ_gain=GAIN,
@@ -180,7 +170,7 @@ if (source == "re-use data"){
                                           i_threshold = permut_length, proba = permut_proba, verbose = TRUE )
     }
   }
-  print_info(seg_errors=seg_errors, permutation = permutation, measure = measure, noise=noise)
+  print_info(seg_errors=seg_errors, permutation = permutation, Noise_or_Measures = Noise_or_Measures)
   
   ######
   #Plotting for visual check

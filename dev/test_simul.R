@@ -4,7 +4,6 @@ setwd(paste0(local.repo, "tests"))
 source(paste0(local.repo, "Phyllotaxis-sim-eval/source/sim_phyllo_sources.R"))
 source(paste0(local.repo, "Phyllotaxis-sim-eval/source/plot_sequences_sources.R"))
 
-
 #################################
 #1. Make reference and plot it
 N=19 #Number of intervals in the sequence (which contains N+1 organs)
@@ -803,7 +802,7 @@ multiseq_plot(mylist=list(init.seq, test.seg$values), align.df = test.seg$I,
               id.names=c("init", "test"), verbose=TRUE)
 
 ###################
-## Pb to initiaise testnoise
+## Pb to initialise testnoise
 ## November 2021
 ################
 N=19 #so 20 organs
@@ -824,3 +823,23 @@ test.seg=segmentation_errors(in.seq = init.seq, align.list = init.align,
 multiseq_plot(mylist=list(init.seq, test.seg$values), align.df = test.seg$I, 
               id.names=c("init", "test"), verbose=TRUE)
 
+###################
+## Change the way noise is encoded
+## November 2021
+################
+N=19 #so 20 organs
+alpha=137.5
+a_sd=35
+i_Gsd=0.8
+i_noise_pct=75
+init.seq=make_refseq(N, alpha, a_sd, i_Gsd, i_noise_pct)
+init.align=make_align_list(N)
+seq_plot(init.seq)
+
+#Make a measure with noise
+anoise=0.5
+inoise=0.5
+noise.seq=make_measure(init.seq, anoise_sd=anoise, inoise_sd = inoise, 
+                       noise.scale = "sd", 
+                       anoise.mean=0, inoise.mean=0, verbose = TRUE)
+multiseq_plot(mylist=list(init.seq, noise.seq), id.names = c("ref", "noise"))

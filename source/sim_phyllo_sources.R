@@ -7,7 +7,7 @@
 #### Distributed without any warranty.
 ###########################################################################
 #started 2020-09-20
-# last edit: 2021-10-20
+# last edit: 2021-11-18
 #Version v0
 
 ##Content:
@@ -45,7 +45,8 @@ make_refseq=function(N, #length of the sequence
   internodes=i_max*exp(-seq(1:N)/i_beta)+ #negative exponential as a base
     mean(i_max*exp(-seq(1:N)/i_beta))*rnorm(N,0,sd=i_Gsd)*i_noise_pct/100 + #Gaussian noise proportional to the mean internode length
     10 #Plateau value -> average minimal value of internodes towards the end of the sequence
-    #Make sure noise does not introduce negative internode length
+    
+  #Make sure noise does not introduce negative internode length
   internodes[which(internodes<0)]=0
   #Introduce random null internodes
   internodes=internodes*(1-rpois(N,i_lambda))
@@ -54,7 +55,6 @@ make_refseq=function(N, #length of the sequence
   ref.seq=cbind.data.frame(intervals=seq(1:N),
                            angles,
                            internodes)
-  #3. Permutations?
   
   return(ref.seq)
 }
@@ -66,20 +66,58 @@ make_refseq=function(N, #length of the sequence
 #Here the noise is technical and comes from the measurement procedure: it is inversely proportional to the accuracy of the measure
 #In other words, while biological variations are real, technical noise is artefactual.
 
-make_measure=function(in.seq, anoise_sd, inoise_sd){
-  #DESCRIPTION: it generates fake measured sequences from an input reference sequence
+make_measure=function(in.seq, anoise_sd, inoise_sd,
+                      noise.scale=c("mean", "sd", "absolute"),
+                      anoise.mean=0, inoise.mean=0, 
+                      verbose=FALSE){
+  #DESCRIPTION: it simulates measured sequences from an input reference sequence by adding an independant random gaussian noise to each values of the input sequence
   #input [in.seq]: the reference sequence = dataframe with three fields: interval ($interval), angle values ($angles) and internode length ($internodes)
+  #input [anoise_sd]: sd of the gaussian noise applied to angles (see noise.scale and examples to see the meaning of the exact value)
+  #input [inoise_sd]: sd of the gaussian noise applied to internodes
+  #input [noise.scale]: indicates what is the scale of the angle/internode noise sd provided by the user.
+  #                     choice among "mean", "sd", "absolute"
+  #input [anoise.mean]: the mean value of the gaussian noise for angles (default is 0: unbiased centered noise)
+  #input [inoise.mean]: the mean value of the gaussian noise (default is 0: unbiased centered noise)
   #output [meas.seq]: the modified reference sequence with measurement noise added to both angles and internodes
   
-  #Technical noise has been measured for manual device: 
-  #it looks Gaussian, mean error=0 sd ~ 6 / 0.5 for angles/internodes
-  angle_noise=round(rnorm(nrow(in.seq),mean=0, anoise_sd), digits = 0)
-  internode_noise=round(rnorm(nrow(in.seq),mean=0, inoise_sd), digits=0)
+  #examples:
+  # if scale = "mean": anoise_sd (or inoise_sd) ranges from [0 +Inf[ and is the ratio compared to the mean of the input values
+  # if scale = "sd": anoise_sd (or inoise_sd) ranges from [0 +Inf[ and is the ratio compared to the sd of the input values
+  # if scale = "absolute": anoise_sd (or inoise_sd) ranges from [0 +Inf[ is the absolute value of sd (in degree for angles and in mm for internodes)                                                           
+  
+  #Checking inputs:
+  noise.scale=match.arg(noise.scale)
+  
+  #Function body:
+  #Notes: Technical noise has been measured for manual device: 
+  #it looks Gaussian, mean error=0 sd ~ 10 / 0.7 for angles/internodes
+  if (verbose){print(paste("the sd of the gaussian noise applied to input values will be scaled to", noise.scale))}
+  if (noise.scale == "mean"){
+    scaled.anoise_sd=mean(in.seq$angles)*anoise_sd
+    angle_noise=round(rnorm(nrow(in.seq), mean=anoise.mean, sd=scaled.anoise_sd), 
+                      digits = 0)
+    scaled.inoise_sd=mean(in.seq$internodes)*anoise_sd
+    internode_noise=round(rnorm(nrow(in.seq),mean=inoise.mean, sd=scaled.inoise_sd), 
+                          digits=0)
+  } else if (noise.scale == "sd"){
+    scaled.anoise_sd=sd(in.seq$angles)*anoise_sd
+    angle_noise=round(rnorm(nrow(in.seq), mean=anoise.mean, sd=scaled.anoise_sd), 
+                      digits = 0)
+    scaled.inoise_sd=sd(in.seq$internodes)*anoise_sd
+    internode_noise=round(rnorm(nrow(in.seq),mean=inoise.mean, sd=scaled.inoise_sd), 
+                          digits=0)
+  } else {#absolute values given for noise_sd
+    angle_noise=round(rnorm(nrow(in.seq), mean=anoise.mean, sd=anoise_sd), 
+                      digits = 0)
+    internode_noise=round(rnorm(nrow(in.seq),mean=inoise.mean, sd=inoise_sd), 
+                          digits=0)
+  }
   
   meas.seq=in.seq
   meas.seq$angles=(in.seq$angles+angle_noise) %% 360
   meas.seq$internodes=in.seq$internodes+internode_noise
-  #Correct internode sequence to avoid negative values:
+  
+  #Correct internodes sequence to avoid negative values:
   meas.seq$internodes[meas.seq$internodes<0]=0
   
   return(meas.seq)
@@ -1075,9 +1113,8 @@ simple_measure_permutation=function(in.seq, align.list, i_threshold=2, proba=1, 
 #########################################
 ##  functions to provide information   ##
 #########################################
-print_info=function(seg_errors, permutation, measure, noise){
+print_info=function(seg_errors, permutation, Noise_or_Measures){
   cat("reminder of main scenario parameters \n")
   print(paste("seg_errors =",seg_errors))
   print(paste("permutation =", permutation))
-  print(paste("measure =", measure))
-  print(paste("noise =", noise))}
+  print(paste("Noise or measures =", Noise_or_Measures))}

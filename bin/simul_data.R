@@ -83,9 +83,11 @@ if (opt$help){
 }
 
 ## lines for Rconsole debug (uncomment to run this script from Rconsole)
-# setwd("~/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInternodes/experiments/Exp1/")
+# # setwd("~/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInternodes/experiments/Exp1/")
+# setwd("~/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInternodes/Phyllotaxis-sim-eval/example_data/Notebook_tests/")
 # opt=list()
-# opt$file="E1_INPUT_test-noiselevels.csv"
+# #opt$file="E1_INPUT_test-noiselevels.csv"
+# opt$file="simulation_plants_nb.csv"
 # opt$noplots=FALSE
 # opt$repository="~/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInternodes/Phyllotaxis-sim-eval/"
 # opt$destination="~/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInternodes/tests/"
@@ -139,12 +141,14 @@ setwd(opt$destination)
 # N_interval
 # organ_gain
 # organ_loss
-# measure
+# Noise_or_Measures
 # measure1_angle_sd
 # measure1_internode_sd
 # measure2_angle_sd
 # measure2_internode_sd
-# noise_level
+# sd_noise_level
+# sd_noise_scale
+# mean_noise_bias
 # permutation_length
 # permutation_likelihood
 # Note
@@ -169,6 +173,17 @@ align.organs=data.frame(PlantID=NULL,
                         reference=NULL,
                         modified=NULL,
                         segmentation=NULL)
+
+convert_tuple=function(input) {
+  #force conversion of "" to NA
+  input=ifelse(input=="", 0, input)
+  if (!is.numeric(input)){
+    #remove brackets
+    temp=gsub(")","",gsub("(", "", input, fixed=TRUE), fixed = TRUE)
+    output=as.vector(sapply(strsplit(temp, ",")[[1]], as.numeric))
+  } else (output=input)
+  return(output)
+}
 
 #LOOP over plants (= rows) in the tables to generate the data
 for (i in 1:nrow(data)){
@@ -200,14 +215,20 @@ for (i in 1:nrow(data)){
   if (is.null(GAIN) && is.null(LOSS)){seg_errors=FALSE} else {seg_errors=TRUE}
   
   # two measures versus noise
-  measure=data[i,]$measure
-  if (measure){
+  NvsM=data[i,]$Noise_or_Measures
+  NvsM=tolower(NvsM) #force conversion to lower case
+  if (NvsM != "measures" & NvsM != "noise" ){
+    stop(paste("for plant", data[i,]$PlantID, ": error in 'Noise_or_Measures' content: please choose among 'measures' or 'noise' only."))}
+  if (NvsM == "measures"){
     manual_anoise_sd=data[i,]$measure1_angle_sd
     manual_inoise_sd=data[i,]$measure1_internode_sd
     aut_anoise_sd=data[i,]$measure2_angle_sd
     aut_inoise_sd=data[i,]$measure2_internode_sd } 
-  noise_level=data[i,]$noise_level
-  if(is.na(noise_level) || noise_level==0){noise=FALSE} else { noise = TRUE }
+  if (NvsM == "noise") {
+    sd_noise_level = convert_tuple(data[i,]$sd_noise_level)
+    sd_noise_scale = ifelse(data[i,]$sd_noise_scale=="", "mean", data[i,]$sd_noise_scale) #default value is "mean" if the field is empty
+    mean_noise_bias = convert_tuple(data[i,]$mean_noise_bias)
+  }
   
   # Permutations
   permut_length=data[i,]$permutation_length
@@ -219,7 +240,7 @@ for (i in 1:nrow(data)){
   #####
   # Print scenario
   #####
-  if (opt$verbose) { print_info(seg_errors=seg_errors, permutation = permutation, measure = measure, noise=noise) }
+  if (opt$verbose) { print_info(seg_errors=seg_errors, permutation = permutation, Noise_or_Measures = NvsM) }
 
   #####
   #Run the scenario and generate corresponding data
@@ -227,10 +248,12 @@ for (i in 1:nrow(data)){
   #Start by generating a sequence of angles and internodes with the same length desired for the reference sequence
   seq=make_refseq(N, alpha, a_sd, i_Gsd, i_noise_pct)
   default.align=make_align_list(N) #create a default alignment with only matches between ref and test sequence
-  if (measure){
+  if (NvsM == "measures"){
     #Modify seq by two independent measures:
-    seq.ref=make_measure(seq, manual_anoise_sd, manual_inoise_sd)
-    seq.aut=make_measure(seq, aut_anoise_sd, aut_inoise_sd)
+    seq.ref=make_measure(seq, anoise_sd = manual_anoise_sd, inoise_sd = manual_inoise_sd,
+                         noise.scale = "absolute", verbose=opt$verbose)
+    seq.aut=make_measure(seq, anoise_sd = aut_anoise_sd, inoise_sd = aut_inoise_sd,
+                         noise.scale = "absolute", verbose=opt$verbose)
     
     if (seg_errors){ #segmentation errors only affect the test sequence, not the reference sequence
       seq.test=segmentation_errors(seq.aut,default.align,
@@ -245,13 +268,23 @@ for (i in 1:nrow(data)){
                                           i_threshold = permut_length, proba = permut_proba, verbose = opt$verbose )
     }
     
-  } else if (noise) {
+  } else if (NvsM == "noise") {
     seq.ref=seq
-    meanA=mean(seq$angles) #used to scale the level of noise on angles
-    meanI=mean(seq$internodes) #used to scale the level of noise on internodes
-    anoise_sd=noise_level*meanA #(in degree, noise with gaussian distrib. of zero mean)
-    inoise_sd=noise_level*meanI #(in mm, noise with gaussian distrib. of zero mean)
-    seq.noise=make_measure(seq, anoise_sd, inoise_sd)
+    if (length(sd_noise_level) == 1 ) {
+      sd_noise_level=ifelse(is.na(sd_noise_level),0,sd_noise_level) #default value is (0,0) if the field is empty
+      #duplicate the value for angles, internodes, respectively
+      sd_noise_level=c(sd_noise_level, sd_noise_level)
+    }
+    if (length(mean_noise_bias) == 1 ) {
+      mean_noise_bias=ifelse(is.na(mean_noise_bias),0,mean_noise_bias) #default value is (0,0) if the field is empty
+      #duplicate the value for angles, internodes, respectively
+      mean_noise_bias=c(mean_noise_bias, mean_noise_bias)
+    }
+    #Apply noise:
+    seq.noise=make_measure(seq, anoise_sd = sd_noise_level[1], inoise_sd = sd_noise_level[2],
+                           noise.scale = sd_noise_scale, 
+                           anoise.mean = mean_noise_bias[1], inoise.mean = mean_noise_bias[2], 
+                           verbose=opt$verbose)
     
     if (seg_errors){
       seq.test=segmentation_errors(seq.noise,default.align,
