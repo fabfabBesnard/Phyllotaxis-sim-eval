@@ -7,7 +7,7 @@
 #### Distributed without any warranty.
 ###########################################################################
 #started 2020-09-20
-# last edit: 2021-11-05
+# last edit: 2021-11-17
 #Version v0
 
 ##Content
@@ -356,9 +356,12 @@ multiseq_plot=function(mylist, align.df=NULL, prediction.eval= NULL,
     p1=p1+
       geom_rect(data = errors.highlight, xmin = errors.highlight$intervals - 0.5, xmax = errors.highlight$intervals +
                   0.5, ymin = -Inf, ymax = Inf, colour=NA, fill = 'red', alpha = 0.1)
+    internode_values=subset(seq.long.print, variable=="internodes")
+    ymax=max(internode_values$value)
     p2=p2+
       geom_rect(data = errors.highlight, xmin = errors.highlight$intervals - 0.5, xmax = errors.highlight$intervals +
-                  0.5, ymin = -Inf, ymax = Inf, colour=NA, fill = 'red', alpha = 0.1)
+                  0.5, ymin = -Inf, ymax = Inf, colour=NA, fill = 'red', alpha = 0.1)+
+      scale_y_continuous(limits = c(0,1.2*ymax))
     
   }
   

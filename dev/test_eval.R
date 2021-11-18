@@ -90,8 +90,8 @@ if (source == "re-use data"){
     # LOSS=c(1,2,3,8,18, 24, 25, 26)
     
     # #Note: Isolated errors in the middle
-    # GAIN=c(10,15)
-    # LOSS=c(8,18)
+     GAIN=c(10,15)
+     LOSS=c(8,18)
     
     #Note: Random segmentation errors
     # nb_gain=2 #choose the nber of organs gained
@@ -102,14 +102,14 @@ if (source == "re-use data"){
     # LOSS=LOSS[order(LOSS)]
     
     #Note: it also possible to define GAIN and LOSS as null (equivalent to setting seg_errors=FALSE)
-    GAIN=NULL
-    LOSS=NULL
+    #GAIN=NULL
+    #LOSS=NULL
   }
   if (noise){
     meanA=mean(seq$angles) #used to scale the level of noise on angles
     meanI=mean(seq$internodes) #used to scale the level of noise on internodes
     #Noise levels
-    Noise_levels=0.2
+    Noise_levels=0.5
   }
   if (permutation){
     #Permutation will be applied to each possible situations depending on selected scenario: measurement (hence only automated measurement), noisy seq, seq with only segmentation errors
@@ -237,6 +237,9 @@ multiseq_plot(list(seq2, tests), align.df = Ialign, title="test simulated data")
 #source ~/softwares/miniconda3/bin/activate
 #conda activate romi
 #Then dtw program:
+#dir=~/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInternodes/tests
+#align_csv_database.py ${dir}/reference_sequences.csv ${dest}/test_sequences.csv dtwtest
+
 #cd ~/Dropbox/Arabidopsis-eval/dtw/data-analysis
 #~/Dropbox/Arabidopsis-eval/dtw/data-analysis$ python arabido-test-fab.py ∕!\ ipython no longer works
 
@@ -244,10 +247,9 @@ multiseq_plot(list(seq2, tests), align.df = Ialign, title="test simulated data")
 #3. Import results
 #####
 #compatible with multiple PlantIDs:
-data=read.csv("Rsimulation_result.csv", header=TRUE)
-data=read.csv("3dexplorer_example_result.csv", header=TRUE)
-data=read.csv("/home/fabfab/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInternodes/tests/testbash/testbash3_result.csv", header=TRUE)
-
+data=read.csv("dtwtest_result.csv", header=TRUE)
+#data=read.csv("3dexplorer_example_result.csv", header=TRUE)
+#data=read.csv("/home/fabfab/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInternodes/tests/testbash/testbash3_result.csv", header=TRUE)
 
 #####
 #4. convert data and plot prediction results
@@ -256,12 +258,12 @@ data=read.csv("/home/fabfab/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInt
 dtw_results=convert_dtw_results(data, seq.ref = seqs, seq.test = tests)
 
 #Plot prediction versus solution (saved by default as a pdf entitled 'Compare_Prediction_Plots.pdf')
-compare_plots(seq.ref=seqs, seq.test=tests, true_align=Ialign, dtw_results = dtw_results)
+compare_plots(seq.ref=seqs, seq.test=tests, true.align=Ialign, dtw.results = dtw_results)
 
 #Note: select only a few plant for the plot with their PlantID:
-compare_plots(seq.ref=seqs, seq.test=tests, true_align=Ialign, dtw_results = dtw_results,
+compare_plots(seq.ref=seqs, seq.test=tests, true.align=Ialign, dtw.results = dtw_results,
               PlantID =c("Plant#1", "Plant#2"),  PDF=TRUE, pdf.name = "test.pdf", verbose = TRUE)
-compare_plots(seq.ref=seqs, seq.test=tests, true_align=Ialign, dtw_results = dtw_results,
+compare_plots(seq.ref=seqs, seq.test=tests, true.align=Ialign, dtw.results = dtw_results,
               PlantID ="MyPlant",  PDF=FALSE, verbose = TRUE)
 
 #####
