@@ -7,7 +7,7 @@
 #### Distributed without any warranty.
 ###########################################################################
 #started 2020-09-20
-# last edit: 2021-11-18
+# last edit: 2021-11-26
 #Version v0
 
 ##Content:
@@ -39,19 +39,21 @@ make_refseq=function(N, #length of the sequence
   i_beta=5
   #Maximum internode length
   i_max=65
-  #Likelihood of null internodes: modeled as poisson law with lambda=mean expectancy of the null internode
-  i_lambda=1/20
-  #internodes=i_max*exp(-seq(1:N)/i_beta)*(1+rnorm(N,0,sd=i_Gsd)*i_noise_pct/100)
+ 
   internodes=i_max*exp(-seq(1:N)/i_beta)+ #negative exponential as a base
     mean(i_max*exp(-seq(1:N)/i_beta))*rnorm(N,0,sd=i_Gsd)*i_noise_pct/100 + #Gaussian noise proportional to the mean internode length
     10 #Plateau value -> average minimal value of internodes towards the end of the sequence
     
   #Make sure noise does not introduce negative internode length
   internodes[which(internodes<0)]=0
-  #Introduce random null internodes
-  internodes=internodes*(1-rpois(N,i_lambda))
+  #Introduce random null internodes: 
+  #Likelihood of null internodes: each internode length is modeled as (independant) Bernouilli variable
+  null_internode_frequency=1/20
+      # multiply by a random variable that takes 1 or 0 value following Poisson law
+      # Use the rbinom function with sample size=1 (complementarity to inverse success/failure)
+  internodes=internodes*(1-rbinom(N, 1, null_internode_frequency))
   internodes=round(internodes, digits=0)
-  
+
   ref.seq=cbind.data.frame(intervals=seq(1:N),
                            angles,
                            internodes)
