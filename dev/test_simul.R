@@ -843,3 +843,26 @@ noise.seq=make_measure(init.seq, anoise_sd=anoise, inoise_sd = inoise,
                        noise.scale = "sd", 
                        anoise.mean=0, inoise.mean=0, verbose = TRUE)
 multiseq_plot(mylist=list(init.seq, noise.seq), id.names = c("ref", "noise"))
+
+###################
+## Implement natural permutations
+## December 2021
+################
+N=19 #so 20 organs
+alpha=137.5
+a_sd=35
+i_Gsd=0.8
+i_noise_pct=75
+
+test=c(0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0)
+get_consecutive_idx(test, value=0)
+
+init.seq=make_refseq(N, alpha, a_sd, i_Gsd, i_noise_pct, 
+                     natural.permutation = TRUE,
+                     verbose=TRUE)
+seq_plot(init.seq)
+
+init.seq=make_refseq(N, alpha, a_sd, i_Gsd, i_noise_pct, 
+                     natural.permutation = TRUE, permutation.frequency=1,
+                     verbose=TRUE)
+seq_plot(init.seq)

@@ -7,7 +7,7 @@
 #### Distributed without any warranty.
 ###########################################################################
 #started 2020-09-20
-# last edit: 2021-11-26
+# last edit: 2021-12-07
 #Version v0
 
 ##Content:
@@ -28,7 +28,14 @@ suppressPackageStartupMessages(require(gridExtra))
 ###################################
 make_refseq=function(N, #length of the sequence
                      alpha, a_sd, #canonical angle value / sd of angles (Gaussian dist.)
-                     i_Gsd, i_noise_pct){
+                     i_Gsd, i_noise_pct, 
+                     natural.permutation=TRUE, permutation.frequency=0.1,
+                     verbose=FALSE){
+  #DESCRIPTION: it generates typical "Arabidopsis" phyllotaxis data made of two sequences: 
+  #               - the sequence of successive divergence angle 
+  #               - and of successive internodes
+  #             from the first cauline branch (base of teh raceme) to the top o fthe inflorescence
+  # [output]: a dataframe with three columns: $intervals, $angles and $internodes
   
   #1. Generate angles (only integer values)
   angles=round(rnorm(N, mean=alpha, sd=a_sd), digits = 0) %% 360
@@ -58,7 +65,148 @@ make_refseq=function(N, #length of the sequence
                            angles,
                            internodes)
   
+  if (natural.permutation){
+    if (verbose){print("Natural permutations will be added to the divergence angle sequence")}
+    #MAIN PARAMATER FOR NATURAL PERMUTATION: 'permutation.frequency' is given as input
+    #default: 0.1
+    
+    ## Natural Permutation; Step1: Generate organ permutations
+    organ.idx=seq(N+3)-1 #N+1 organs + an organ before (N°0) + an organ after (censored permutations)
+    #Natural permutation is a random Bernoulli variable on each organ: =1 means that the organ is permuted with the next organ
+    permut.events=rbinom(N+2, 1, permutation.frequency) #idx of perumtation can range from organ idx '0' to 'N+1', so N+2 values are possible
+    if (verbose){
+      print("following indexes will be permuted")
+      print(permut.events)}
+    
+    #The following function allows to separate consecutive versus isolated permutations:
+    permut.analysis=get_consecutive_idx(permut.events, value = 1, return.isolated = TRUE) #is a list
+    
+    #Case of simple isolated permutations
+    simple.permut=permut.analysis[[2]]
+    if (length(simple.permut>0)){
+      if (verbose){print("there are isolated permutations starting at the following indexes")
+      print(simple.permut)}
+      organ.idx[simple.permut]=organ.idx[simple.permut]+1
+      organ.idx[simple.permut+1]=organ.idx[simple.permut+1]-1
+    } else {
+      if (verbose){print("No isolated permutations have been drawn in the sequence")}
+    }
+    
+    #Case of consecutive permutations
+    consecutive.permut=permut.analysis[[1]]
+    if (nrow(consecutive.permut)>0){
+      if (verbose){print("there are consecutive permutations starting at the following indexes")
+      print(consecutive.permut)}
+      #print(organ.idx)
+      for (r in nrow(consecutive.permut)){
+        new.seq=seq(organ.idx[consecutive.permut$start.idx[r]], 
+                    (organ.idx[consecutive.permut$end.idx[r]]+1))
+        #print(new.seq)
+        while (sum(new.seq==seq(organ.idx[consecutive.permut$start.idx[r]], 
+                           (organ.idx[consecutive.permut$end.idx[r]]+1)))==length(new.seq)){
+          new.seq=sample(new.seq) #this loop ensures that the shuffling is not by randomness the original order
+        }
+        organ.idx[seq(consecutive.permut$start.idx[r],(consecutive.permut$end.idx[r]+1))]=new.seq
+      }
+    } else {
+      if (verbose){print("No consecutive permutations have been drawn in the sequence")}
+    }
+    
+    ## Natural Permutation; Step2: Compute new divergence angles
+    # Compute new divergence angles based on the previously generated organ permutations
+    #print(organ.idx)
+    #print(ref.seq$angles)
+    before.angles=ref.seq$angles #store the values of the angles before permutation
+    successive.gaps=organ.idx[(3:(length(organ.idx)-1))]-organ.idx[(2:(length(organ.idx)-2))]
+    organ.idx=organ.idx[c(-1, -length(organ.idx))] #resize the organ idx to the window of the sequence
+    if (verbose){
+      print("The new organ order is")
+      print(organ.idx)
+      print("New intervals are computed according to the following gaps")
+      print(successive.gaps)
+    }
+    
+    if (length(successive.gaps) != N){stop("error: the final number of intervals has been modified by natural permutations. Consider debugging.")}
+    if(verbose){print("Computing new divergence angles after natural permutations")}
+    
+    for (i in 1:length(successive.gaps)){
+      #print("gap:")
+      #print(successive.gaps[i])
+      if (successive.gaps[i] != 1){
+        g=successive.gaps[i]
+        Oi=organ.idx[i] #original idx of the first organ of the current interval
+        Oii=Oi+g #original idx of the last organ of the current interval
+        #Note: [Oi-Oii] is [0, N+2]
+        if ( Oi == 0 | Oi == N+2 | Oii == 0 | Oii == N+2 ){
+          #All possible cases of censored permutations: a divergence angle is missing to compute the new divergence angle
+          missing.angle=round(rnorm(1, mean=alpha, sd=a_sd), digits = 0) %% 360 }
+        
+        # print(c("interval, gap, first organ, second organ:"))
+        # print(c(i, g, Oi, Oii))
+        # print(before.angles[i])
+        
+        if (g>0){ 
+          if (Oi == 0){#Censored permutations at the beginning: interval starting at organ '0'
+            #Note: gap is necessarily positive, '0' is the minimum possible organ index
+            ref.seq$angles[i] = (missing.angle + sum(before.angles[1:g]) ) %% 360
+          } else if (Oii ==  N+2 ) {#Censored permutations at the end: interval ending at organ 'N+2'
+            #Note: gap is necessarily positive, 'N+2' is the minimum possible organ index
+            ref.seq$angles[i] = (sum(before.angles[Oi:length(before.angles)]) + missing.angle) %% 360
+          } else { #all other cases
+            ref.seq$angles[i] = sum(before.angles[Oi:(Oi+g-1)]) %% 360 }
+          }
+        else {#g<0
+          if (Oii == 0){#Censored permutations at the beginning: interval ending at organ '0'
+            ref.seq$angles[i] = (- missing.angle - sum(before.angles[1:Oi]) ) %% 360 }
+          else if (Oi == N+2 ){#Censored permutations at the end: interval starting at organ 'N+2'
+            ref.seq$angles[i] = (- sum(before.angles[Oii:(length(before.angles))]) - missing.angle ) %% 360
+          } else {
+            ref.seq$angles[i] = -sum(before.angles[(Oi+g):(Oi-1)]) %%360 }
+        }
+        #print(ref.seq$angles[i])
+        }
+    }
+  }
   return(ref.seq)
+}
+
+get_consecutive_idx=function(myvector, value=value, return.isolated=TRUE){
+  #DESCRIPTION: identify segments made by consecutive vector elements taking the same value given by the input [value]
+  #if [input] 'return.isolated=TRUE, a second dataframe with the isolated values is returned.
+  #the two dataframe are return as a list
+  
+  idx=which(myvector==value)
+  #print(idx)
+  consecutive.segments=data.frame(segment.no=integer(),
+                                 start.idx=integer(),
+                                 end.idx=integer(),
+                                 length=integer())
+  if (return.isolated){isolated.idx=c()}
+  
+  if (length(idx)>0){
+    idx.shift=idx[-length(idx)]+1  
+    breaks=c(which(idx[-1] != idx.shift), length(idx))
+    #print(breaks)
+    pointer=0
+    segment.no=1
+    for (b in breaks){
+      l=b-pointer
+      if (l>1){
+        #print(idx[pointer+1])
+        consecutive.segments=rbind.data.frame(consecutive.segments,
+                                             data.frame(segment.no=segment.no, 
+                                                        start.idx=idx[pointer+1], 
+                                                        end.idx=idx[b],
+                                                        length=l))
+      segment.no=segment.no+1
+      } else if (return.isolated){
+        isolated.idx=c(isolated.idx, idx[b])
+      }
+      pointer=b
+    }
+  } 
+  if (return.isolated){return(list(consecutive.segments, isolated.idx))}
+  else {return(consecutive.segments)}
 }
 
 ##################################
