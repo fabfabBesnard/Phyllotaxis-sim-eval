@@ -7,7 +7,7 @@
 #### Distributed without any warranty.
 ###########################################################################
 #started 2020-09-20
-# last edit: 2021-12-07
+# last edit: 2021-12-08
 #Version v0
 
 ##Content:
@@ -27,9 +27,10 @@ suppressPackageStartupMessages(require(gridExtra))
 ## Generate Reference sequences  ##
 ###################################
 make_refseq=function(N, #length of the sequence
-                     alpha, a_sd, #canonical angle value / sd of angles (Gaussian dist.)
-                     i_Gsd, i_noise_pct, 
+                     alpha=137.5, a_sd=20, #canonical angle value / sd of angles (Gaussian dist.)
                      natural.permutation=TRUE, permutation.frequency=0.1,
+                     i_Gsd, i_noise_pct, 
+                     i_beta=5, i_max=65, i_plateau=5,
                      verbose=FALSE){
   #DESCRIPTION: it generates typical "Arabidopsis" phyllotaxis data made of two sequences: 
   #               - the sequence of successive divergence angle 
@@ -41,21 +42,36 @@ make_refseq=function(N, #length of the sequence
   angles=round(rnorm(N, mean=alpha, sd=a_sd), digits = 0) %% 360
   
   #2. Generate internodes (ony integer values)
-  #Hard-coded parameters for internodes:
+  # parameters for internodes:
   #Exponential decay -> rate
-  i_beta=5
+  #i_beta
   #Maximum internode length
-  i_max=65
- 
-  internodes=i_max*exp(-seq(1:N)/i_beta)+ #negative exponential as a base
-    mean(i_max*exp(-seq(1:N)/i_beta))*rnorm(N,0,sd=i_Gsd)*i_noise_pct/100 + #Gaussian noise proportional to the mean internode length
-    10 #Plateau value -> average minimal value of internodes towards the end of the sequence
-    
+  #i_max
+ make_internodes = function(N, i_beta, i_Gsd, i_noise_pct, i_plateau){
+   internode.seq=i_max*exp(-seq(1:N)/i_beta)+ #negative exponential as a base
+     mean(i_max*exp(-seq(1:N)/i_beta))*rnorm(N,0,sd=i_Gsd)*i_noise_pct/100 + #Gaussian noise proportional to the mean internode length
+     i_plateau #Plateau value -> average minimal value of internodes towards the end of the sequence
+ }
+  internodes=make_internodes(N, i_beta, i_Gsd, i_noise_pct, i_plateau)
+  
   #Make sure noise does not introduce negative internode length
-  internodes[which(internodes<0)]=0
+  # When the internode is null, re-sample a value from the noised negative exponential
+  null.i=which(internodes<0)
+  #print(internodes)
+  #print(null.i)
+  if (length(null.i)>0){
+    for (i in 1:length(null.i)){
+      while(internodes[null.i[i]] < 0 ){
+        new.i=make_internodes(N, i_beta, i_Gsd, i_noise_pct, i_plateau)
+        internodes[null.i[i]]=new.i[null.i[i]]
+      }
+    }
+  }
+  #print(which(internodes<0))
+  
   #Introduce random null internodes: 
   #Likelihood of null internodes: each internode length is modeled as (independant) Bernouilli variable
-  null_internode_frequency=1/20
+  null_internode_frequency=1/100 #(from real data: 3/396 intervals)
       # multiply by a random variable that takes 1 or 0 value following Poisson law
       # Use the rbinom function with sample size=1 (complementarity to inverse success/failure)
   internodes=internodes*(1-rbinom(N, 1, null_internode_frequency))
@@ -146,9 +162,14 @@ make_refseq=function(N, #length of the sequence
         # print(before.angles[i])
         
         if (g>0){ 
-          if (Oi == 0){#Censored permutations at the beginning: interval starting at organ '0'
+          if (Oi == 0 & Oii== 27 ){
+            ref.seq$angles[i] = (missing.angle + 
+                                   sum(before.angles) +
+                                   round(rnorm(1, mean=alpha, sd=a_sd), digits = 0) %% 360) %% 360
+          } 
+          else if (Oi == 0){#Censored permutations at the beginning: interval starting at organ '0'
             #Note: gap is necessarily positive, '0' is the minimum possible organ index
-            ref.seq$angles[i] = (missing.angle + sum(before.angles[1:g]) ) %% 360
+            ref.seq$angles[i] = (missing.angle + sum(before.angles[1:(g-1)]) ) %% 360
           } else if (Oii ==  N+2 ) {#Censored permutations at the end: interval ending at organ 'N+2'
             #Note: gap is necessarily positive, 'N+2' is the minimum possible organ index
             ref.seq$angles[i] = (sum(before.angles[Oi:length(before.angles)]) + missing.angle) %% 360
@@ -156,11 +177,16 @@ make_refseq=function(N, #length of the sequence
             ref.seq$angles[i] = sum(before.angles[Oi:(Oi+g-1)]) %% 360 }
           }
         else {#g<0
-          if (Oii == 0){#Censored permutations at the beginning: interval ending at organ '0'
+          if (Oi == 27 & Oii== 0 ){
+            ref.seq$angles[i] = (- missing.angle - 
+                                   sum(before.angles) -
+                                   round(rnorm(1, mean=alpha, sd=a_sd), digits = 0) %% 360) %% 360 } 
+          else if (Oii == 0){#Censored permutations at the beginning: interval ending at organ '0'
             ref.seq$angles[i] = (- missing.angle - sum(before.angles[1:Oi]) ) %% 360 }
           else if (Oi == N+2 ){#Censored permutations at the end: interval starting at organ 'N+2'
-            ref.seq$angles[i] = (- sum(before.angles[Oii:(length(before.angles))]) - missing.angle ) %% 360
-          } else {
+            ref.seq$angles[i] = (- ifelse(is.na(sum(before.angles[Oii:(length(before.angles))])), 0, sum(before.angles[Oii:(length(before.angles))]) ) 
+                                 - missing.angle ) %% 360} 
+          else {
             ref.seq$angles[i] = -sum(before.angles[(Oi+g):(Oi-1)]) %%360 }
         }
         #print(ref.seq$angles[i])

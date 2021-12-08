@@ -866,3 +866,21 @@ init.seq=make_refseq(N, alpha, a_sd, i_Gsd, i_noise_pct,
                      natural.permutation = TRUE, permutation.frequency=1,
                      verbose=TRUE)
 seq_plot(init.seq)
+
+###################
+## Improving internodes realism
+## December 2021
+################
+N=25 #so 20 organs
+alpha=137.5
+a_sd=22
+permutation.frequency=1
+i_Gsd=5
+i_noise_pct=50
+
+init.seq=make_refseq(N, alpha, a_sd, 
+                     natural.permutation = TRUE, permutation.frequency=permutation.frequency,
+                     i_Gsd, i_noise_pct,
+                     i_beta=1, i_max=80, i_plateau=5,
+                     verbose=FALSE)
+seq_plot(init.seq)
