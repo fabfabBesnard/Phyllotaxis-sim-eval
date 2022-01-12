@@ -1,4 +1,3 @@
-#setwd("~/Dropbox/Arabidopsis-eval/R_simul-eval")
 local.repo="~/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInternodes/" #add the final '/'
 setwd(paste0(local.repo, "tests"))
 source(paste0(local.repo, "Phyllotaxis-sim-eval/source/sim_phyllo_sources.R"))
@@ -871,7 +870,7 @@ seq_plot(init.seq)
 ## Improving internodes realism
 ## December 2021
 ################
-N=25 #so 20 organs
+N=25 #so 26 organs
 alpha=137.5
 a_sd=22
 permutation.frequency=1
@@ -884,3 +883,32 @@ init.seq=make_refseq(N, alpha, a_sd,
                      i_beta=1, i_max=80, i_plateau=5,
                      verbose=FALSE)
 seq_plot(init.seq)
+
+###################
+## Improving the measures of internodes (ob of null internodes)
+## Jan 2022
+################
+N=25 #so 20 organs
+alpha=137.5
+a_sd=30
+permutation.frequency=0.04
+i_Gsd=1.5
+i_beta=1.5
+i_noise_pct=75
+i_max=100
+i_plateau=5
+
+init.seq=make_refseq(N, alpha, a_sd, 
+                     natural.permutation = TRUE, permutation.frequency=permutation.frequency,
+                     i_Gsd=i_Gsd, i_noise_pct=i_noise_pct,
+                     i_beta=i_beta, i_max=i_max, i_plateau=i_plateau,
+                     verbose=FALSE)
+seq_plot(init.seq)
+
+#Make a measure with noise
+anoise=50
+inoise=5
+noise.seq=make_measure(init.seq, anoise_sd=anoise, inoise_sd = inoise, 
+                       noise.scale = "absolute", 
+                       anoise.mean=0, inoise.mean=0, verbose = TRUE)
+multiseq_plot(mylist=list(init.seq, noise.seq), id.names = c("ref", "noise"))

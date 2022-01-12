@@ -7,7 +7,7 @@
 #### Distributed without any warranty.
 ###########################################################################
 #started 2020-09-20
-# last edit: 2021-12-08
+# last edit: 2021-01-12
 #Version v0
 
 ##Content:
@@ -35,7 +35,7 @@ make_refseq=function(N, #length of the sequence
   #DESCRIPTION: it generates typical "Arabidopsis" phyllotaxis data made of two sequences: 
   #               - the sequence of successive divergence angle 
   #               - and of successive internodes
-  #             from the first cauline branch (base of teh raceme) to the top o fthe inflorescence
+  #             from the first cauline branch (base of the raceme) to the top of the inflorescence
   # [output]: a dataframe with three columns: $intervals, $angles and $internodes
   
   #1. Generate angles (only integer values)
@@ -294,7 +294,25 @@ make_measure=function(in.seq, anoise_sd, inoise_sd,
   meas.seq$internodes=in.seq$internodes+internode_noise
   
   #Correct internodes sequence to avoid negative values:
-  meas.seq$internodes[meas.seq$internodes<0]=0
+  #meas.seq$internodes[meas.seq$internodes<0]=0
+  #Make sure noise does not introduce negative internode length
+  # When the internode is null, re-sample a value from the noised negative exponential
+  null.i=which(meas.seq$internodes<0)
+  #print(meas.seq$internodes)
+  if (length(null.i)>0){
+    print("correction negative values")
+    print(meas.seq$internodes)
+    print(null.i)
+    if (noise.scale == "absolute"){ inoise_sd_2=inoise_sd} else {inoise_sd_2=scaled.inoise_sd} #use the right scale for the noise
+    for (i in 1:length(null.i)){
+      while(meas.seq$internodes[null.i[i]] < 0 ){
+        new.inoise=round(rnorm(nrow(in.seq),mean=inoise.mean, sd=inoise_sd_2), 
+                         digits=0)
+        meas.seq$internodes[null.i[i]]=in.seq$internodes[null.i[i]]+new.inoise[null.i[i]]
+      }
+    }
+  }
+  #print(which(internodes<0))
   
   return(meas.seq)
 }
