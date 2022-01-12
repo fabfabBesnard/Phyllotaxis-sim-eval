@@ -898,7 +898,7 @@ i_noise_pct=75
 i_max=100
 i_plateau=5
 
-init.seq=make_refseq(N, alpha, a_sd, 
+init.seq=make_refseq(N, alpha, a_sd,
                      natural.permutation = TRUE, permutation.frequency=permutation.frequency,
                      i_Gsd=i_Gsd, i_noise_pct=i_noise_pct,
                      i_beta=i_beta, i_max=i_max, i_plateau=i_plateau,
