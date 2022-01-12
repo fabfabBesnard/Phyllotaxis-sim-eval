@@ -298,11 +298,10 @@ make_measure=function(in.seq, anoise_sd, inoise_sd,
   #Make sure noise does not introduce negative internode length
   # When the internode is null, re-sample a value from the noised negative exponential
   null.i=which(meas.seq$internodes<0)
-  #print(meas.seq$internodes)
   if (length(null.i)>0){
-    print("correction negative values")
-    print(meas.seq$internodes)
-    print(null.i)
+    # print("correction negative values")
+    # print(meas.seq$internodes)
+    # print(null.i)
     if (noise.scale == "absolute"){ inoise_sd_2=inoise_sd} else {inoise_sd_2=scaled.inoise_sd} #use the right scale for the noise
     for (i in 1:length(null.i)){
       while(meas.seq$internodes[null.i[i]] < 0 ){
