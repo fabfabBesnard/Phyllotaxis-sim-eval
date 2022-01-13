@@ -7,7 +7,7 @@
 #### Distributed without any warranty.
 ###########################################################################
 #started 2020-09-20
-# last edit: 2021-01-12
+# last edit: 2021-01-13
 #Version v0
 
 ##Content:
@@ -27,15 +27,16 @@ suppressPackageStartupMessages(require(gridExtra))
 ## Generate Reference sequences  ##
 ###################################
 make_refseq=function(N, #length of the sequence
-                     alpha=137.5, a_sd=20, #canonical angle value / sd of angles (Gaussian dist.)
-                     natural.permutation=TRUE, permutation.frequency=0.1,
-                     i_Gsd, i_noise_pct, 
-                     i_beta=5, i_max=65, i_plateau=5,
+                     alpha=137.5, a_sd=30, #canonical angle value / sd of angles (Gaussian dist.)
+                     natural.permutation=TRUE, permutation.frequency=0.04,
+                     i_Gsd=1.5, i_noise_pct=75, 
+                     i_beta=1.5, i_max=100, i_plateau=5,
                      verbose=FALSE){
   #DESCRIPTION: it generates typical "Arabidopsis" phyllotaxis data made of two sequences: 
   #               - the sequence of successive divergence angle 
   #               - and of successive internodes
   #             from the first cauline branch (base of the raceme) to the top of the inflorescence
+  #Default values have been optimized to simulate realistic data
   # [output]: a dataframe with three columns: $intervals, $angles and $internodes
   
   #1. Generate angles (only integer values)
@@ -82,7 +83,7 @@ make_refseq=function(N, #length of the sequence
                            internodes)
   
   if (natural.permutation){
-    if (verbose){print("Natural permutations will be added to the divergence angle sequence")}
+    if (verbose){print("Natural permutations can be added to the divergence angle sequence")}
     #MAIN PARAMATER FOR NATURAL PERMUTATION: 'permutation.frequency' is given as input
     #default: 0.1
     
@@ -90,9 +91,11 @@ make_refseq=function(N, #length of the sequence
     organ.idx=seq(N+3)-1 #N+1 organs + an organ before (N°0) + an organ after (censored permutations)
     #Natural permutation is a random Bernoulli variable on each organ: =1 means that the organ is permuted with the next organ
     permut.events=rbinom(N+2, 1, permutation.frequency) #idx of perumtation can range from organ idx '0' to 'N+1', so N+2 values are possible
-    if (verbose){
-      print("following indexes will be permuted")
-      print(permut.events)}
+    
+    # For debug:
+    # if (verbose){
+    #   print("following indexes will be permuted")
+    #   print(permut.events)}
     
     #The following function allows to separate consecutive versus isolated permutations:
     permut.analysis=get_consecutive_idx(permut.events, value = 1, return.isolated = TRUE) #is a list
@@ -100,8 +103,11 @@ make_refseq=function(N, #length of the sequence
     #Case of simple isolated permutations
     simple.permut=permut.analysis[[2]]
     if (length(simple.permut>0)){
-      if (verbose){print("there are isolated permutations starting at the following indexes")
-      print(simple.permut)}
+      if (verbose){print("there are isolated permutations") 
+        # For debug
+        # print("starting at the following indexes")
+        # print(simple.permut)
+        }
       organ.idx[simple.permut]=organ.idx[simple.permut]+1
       organ.idx[simple.permut+1]=organ.idx[simple.permut+1]-1
     } else {
@@ -111,8 +117,11 @@ make_refseq=function(N, #length of the sequence
     #Case of consecutive permutations
     consecutive.permut=permut.analysis[[1]]
     if (nrow(consecutive.permut)>0){
-      if (verbose){print("there are consecutive permutations starting at the following indexes")
-      print(consecutive.permut)}
+      if (verbose){print("consecutive permutations have been drawn in the sequence")
+        #For debug:
+        # print("They start at the following indexes")
+        # print(consecutive.permut)
+      }
       #print(organ.idx)
       for (r in nrow(consecutive.permut)){
         new.seq=seq(organ.idx[consecutive.permut$start.idx[r]], 
@@ -135,12 +144,13 @@ make_refseq=function(N, #length of the sequence
     before.angles=ref.seq$angles #store the values of the angles before permutation
     successive.gaps=organ.idx[(3:(length(organ.idx)-1))]-organ.idx[(2:(length(organ.idx)-2))]
     organ.idx=organ.idx[c(-1, -length(organ.idx))] #resize the organ idx to the window of the sequence
-    if (verbose){
-      print("The new organ order is")
-      print(organ.idx)
-      print("New intervals are computed according to the following gaps")
-      print(successive.gaps)
-    }
+    # For debug only:
+    # if (verbose){
+    #   print("The new organ order is")
+    #   print(organ.idx)
+    #   print("New intervals are computed according to the following gaps")
+    #   print(successive.gaps)
+    # }
     
     if (length(successive.gaps) != N){stop("error: the final number of intervals has been modified by natural permutations. Consider debugging.")}
     if(verbose){print("Computing new divergence angles after natural permutations")}
@@ -156,7 +166,7 @@ make_refseq=function(N, #length of the sequence
         if ( Oi == 0 | Oi == N+2 | Oii == 0 | Oii == N+2 ){
           #All possible cases of censored permutations: a divergence angle is missing to compute the new divergence angle
           missing.angle=round(rnorm(1, mean=alpha, sd=a_sd), digits = 0) %% 360 }
-        
+        # For debug only:
         # print(c("interval, gap, first organ, second organ:"))
         # print(c(i, g, Oi, Oii))
         # print(before.angles[i])

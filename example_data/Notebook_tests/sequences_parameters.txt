@@ -1,0 +1,9 @@
+alpha=137.5
+a_sd=30
+natural.permutation=TRUE
+permutation.frequency=0.04
+i_Gsd=1.5
+i_beta=1.5
+i_noise_pct=75
+i_max=100
+i_plateau=5

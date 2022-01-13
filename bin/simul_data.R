@@ -9,7 +9,7 @@
 #### Distributed without any warranty.
 ###########################################################################
 #started 2021-04
-# last edit: 2021-11-08
+# last edit: 2021-01-13
 #Version v0
 
 ###############
@@ -54,6 +54,8 @@ suppressPackageStartupMessages(require(optparse))
 option_list = list(
   make_option(c("-f", "--file"), type="character", default=NULL, 
               help="input table that configures the sequences to simulate (ex: Number, length, segmentation errors, ...)", metavar="character"),
+  make_option(c("-P", "--parameters"), type="character", default=NULL, 
+              help="file giving the main parameters that shape the simulated sequences", metavar="character"),
   make_option(c("-n", "--noplots"), action="store_true", default=TRUE,
               help="do not print plots [default]"),
   make_option(c("-p", "--plots"), action="store_false", 
@@ -83,34 +85,43 @@ if (opt$help){
 }
 
 ## lines for Rconsole debug (uncomment to run this script from Rconsole)
-# # setwd("~/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInternodes/experiments/Exp1/")
-# setwd("~/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInternodes/Phyllotaxis-sim-eval/example_data/Notebook_tests/")
-# opt=list()
-# #opt$file="E1_INPUT_test-noiselevels.csv"
-# opt$file="simulation_plants_nb.csv"
-# opt$noplots=FALSE
-# opt$repository="~/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInternodes/Phyllotaxis-sim-eval/"
-# opt$destination="~/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInternodes/tests/"
-# opt$output_prefix="debug"
-# opt$setseed=NULL
-# opt$verbose=TRUE
+# setwd("~/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInternodes/experiments/Exp1/")
+setwd("~/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInternodes/Phyllotaxis-sim-eval/example_data/Notebook_tests/")
+opt=list()
+#opt$file="E1_INPUT_test-noiselevels.csv"
+opt$file="simulation_plants_nb.csv"
+#opt$parameters="sequences_parameters.txt"
+opt$noplots=FALSE
+opt$repository="~/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInternodes/Phyllotaxis-sim-eval/"
+opt$destination="~/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInternodes/tests/"
+opt$output_prefix="debug"
+opt$setseed=NULL
+opt$verbose=TRUE
 
-#############################
-##  Hard-coded PARAMETERS  ##
-#############################
-###I. PHYLLOTAXIS
-#####
-## Divergence angles
-#Canonical angle:
-alpha=137.5
-#angle_sd (correspond to real biological variation)
-a_sd=18.5 #-> cf Guedon et al. JTB 2013: standard deviation a_sd=18.5
+####################################################
+##  General PARAMETERS of the simulated sequence  ##
+###################################################
+#Default parameters ensures that realistic phyllotaxis sequences of angles and internodes will be simulated.
+#However, it is possible to overwrite default settings by new parameters provided as input to the function
 
-## Internodes
-#Internode_noise: gaussian noise: mean=0, sd=i_noise
-i_Gsd=0.8
-#ratio of the biological noise/variation compared to the value of the internode, expressed in pct
-i_noise_pct=75
+if (is.null(opt$parameters)){
+  if (opt$verbose){print("default parameters for simulated sequences")} 
+  } else {
+  if (opt$verbose){print("General parameters of simulated sequences will be updated according to user input")}
+  source(opt$parameters)  
+  }
+
+#Before script (erase at the end)
+# ## Divergence angles
+# #Canonical angle:
+# alpha=137.5
+# #angle_sd (correspond to real biological variation)
+# a_sd=18.5 #-> cf Guedon et al. JTB 2013: standard deviation a_sd=18.5
+# ## Internodes
+# #Internode_noise: gaussian noise: mean=0, sd=i_noise
+# i_Gsd=0.8
+# #ratio of the biological noise/variation compared to the value of the internode, expressed in pct
+# i_noise_pct=75
 
 cat("Starting script to simulate paired sequences of phyllotaxis \n")
 ########################
@@ -246,7 +257,16 @@ for (i in 1:nrow(data)){
   #Run the scenario and generate corresponding data
   #####
   #Start by generating a sequence of angles and internodes with the same length desired for the reference sequence
-  seq=make_refseq(N, alpha, a_sd, i_Gsd, i_noise_pct)
+  if (is.null(opt$parameters)){
+    seq=make_refseq(N, verbose=opt$verbose) #all other parameters are default
+  } else {
+    seq=make_refseq(N, 
+                    alpha=alpha, a_sd=a_sd,
+                    natural.permutation=natural.permutation, permutation.frequency=permutation.frequency,
+                    i_Gsd=i_Gsd, i_noise_pct=i_noise_pct, 
+                    i_beta=i_beta, i_max=i_max, i_plateau=i_plateau,
+                    verbose=opt$verbose)
+  }
   default.align=make_align_list(N) #create a default alignment with only matches between ref and test sequence
   if (NvsM == "measures"){
     #Modify seq by two independent measures:
