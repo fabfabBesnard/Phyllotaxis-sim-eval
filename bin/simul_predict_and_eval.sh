@@ -30,11 +30,14 @@ echo "	-D, --destination (optional)
 echo "	-o, --output_prefix (optional)
 	prefix for all outputs files
 "
+echo "	-P, --parameters (optional)
+	Path to a file (.txt) providing values for the general parameters of the simulated phyllotaxis sequences. The given parameters overwrite default parameters. Use absolute paths.
+"
 echo "	-s, --setseed (optional)
 	specifies a seed for the random values generated in simulated sequences
 "
 echo "	-dtw, --dtw_options (optional)
-	specifies any input oarguments that is accepted by the 'sm-dtw' functions (e.g. --free-ends; --beam_size; etc...). 
+	specifies any input arguments that is accepted by the 'sm-dtw' functions (e.g. --free-ends; --beam_size; etc...). 
   Includes all options into double quotes "", several options can be passed at the same time (e.g. "--constraint='merge_split' --free-ends 0.4")
 "
 echo "	-p, --plots (optional)
@@ -90,6 +93,10 @@ while [ "$1" != "" ]; do
   -f | --file)
     shift
     file=$1
+    ;;
+  -P | --parameters)
+    shift
+    options_step1+=" --parameters "$1
     ;;
   -R | --repository)
     shift

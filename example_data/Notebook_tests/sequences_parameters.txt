@@ -1,9 +1,12 @@
-alpha=137.5
-a_sd=30
-natural.permutation=TRUE
-permutation.frequency=0.04
-i_Gsd=1.5
-i_beta=1.5
-i_noise_pct=75
-i_max=100
-i_plateau=5
+# General parameters for simulated phyllotaxis sequences (angles and internodes). 
+# Note: do not erase a parameter (all parameters must be present). Set to NULL (or 0 or FALSE) to suppress a value.
+
+alpha=90 #default 137.5 (mean value of the divergence angle)
+a_sd=5 #default 30 (standard deviation of the natural angle value)
+natural.permutation=FALSE #default TRUE (logical: whether permutation are possible in the sequence)
+permutation.frequency=NULL #default 0.04 (frequency of natural permutations)
+i_Gsd=5 #default 1.5 (standard deviation applied to the natural internode value)
+i_beta=10 #default 1.5 (parameter of the negative exponential simulating the internode length: the smaller the steeper)
+i_noise_pct=75 #default 75 (
+i_max=100 #default 100 (maximum value of the internode value)
+i_plateau=20 #default 5 (plateau value for internode length)

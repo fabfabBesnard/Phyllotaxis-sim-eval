@@ -19,6 +19,7 @@
 # mandatory options:
             # -f (--file) table file (.csv) describing the properties of the paired sequences to generate
 # + facultative options:
+            # -P (--Parameters): changing the main parameters that shape the simulated sequences"
             # -p (--plots): print plots
             # -o (--output_prefix): prefix for all outputs
             # -s (--setseed): provides a seed for the random values generated in simulated sequences
@@ -86,17 +87,17 @@ if (opt$help){
 
 ## lines for Rconsole debug (uncomment to run this script from Rconsole)
 # setwd("~/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInternodes/experiments/Exp1/")
-setwd("~/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInternodes/Phyllotaxis-sim-eval/example_data/Notebook_tests/")
-opt=list()
-#opt$file="E1_INPUT_test-noiselevels.csv"
-opt$file="simulation_plants_nb.csv"
-#opt$parameters="sequences_parameters.txt"
-opt$noplots=FALSE
-opt$repository="~/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInternodes/Phyllotaxis-sim-eval/"
-opt$destination="~/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInternodes/tests/"
-opt$output_prefix="debug"
-opt$setseed=NULL
-opt$verbose=TRUE
+# setwd("~/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInternodes/Phyllotaxis-sim-eval/example_data/Notebook_tests/")
+# opt=list()
+# #opt$file="E1_INPUT_test-noiselevels.csv"
+# opt$file="simulation_plants_nb.csv"
+# #opt$parameters="sequences_parameters.txt"
+# opt$noplots=FALSE
+# opt$repository="~/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInternodes/Phyllotaxis-sim-eval/"
+# opt$destination="~/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInternodes/tests/"
+# opt$output_prefix="debug"
+# opt$setseed=NULL
+# opt$verbose=TRUE
 
 ####################################################
 ##  General PARAMETERS of the simulated sequence  ##
