@@ -19,7 +19,7 @@
 # mandatory options:
             # -f (--file) table file (.csv) describing the properties of the paired sequences to generate
 # + facultative options:
-            # -P (--Parameters): changing the main parameters that shape the simulated sequences"
+            # -P (--parameters): changing the main parameters that shape the simulated sequences"
             # -p (--plots): print plots
             # -o (--output_prefix): prefix for all outputs
             # -s (--setseed): provides a seed for the random values generated in simulated sequences
