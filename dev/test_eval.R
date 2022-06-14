@@ -231,10 +231,7 @@ multiseq_plot(list(seq2, tests), align.df = Ialign, title="test simulated data")
 #conda activate romi
 #Then dtw program:
 #dir=~/Documents/RDP/MyProjects/ROMI/Data/Eval_AnglesAndInternodes/tests
-#align_csv_database.py ${dir}/reference_sequences.csv ${dest}/test_sequences.csv dtwtest
-
-#cd ~/Dropbox/Arabidopsis-eval/dtw/data-analysis
-#~/Dropbox/Arabidopsis-eval/dtw/data-analysis$ python arabido-test-fab.py ∕!\ ipython no longer works
+#align_csv_database.py ${dir}/reference_sequences.csv ${dir}/test_sequences.csv dtwtest
 
 #####
 #3. Import results
