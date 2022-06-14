@@ -19,6 +19,8 @@ seq_plot(REF)
 
 ############################
 #2. Make a measure of reference and plot it with REF
+manual_anoise_sd=20
+manual_inoise_sd=5
 man_MEAS=make_measure(REF, manual_anoise_sd, manual_inoise_sd)
 seq_plot(man_MEAS)
 
@@ -912,3 +914,4 @@ noise.seq=make_measure(init.seq, anoise_sd=anoise, inoise_sd = inoise,
                        noise.scale = "absolute", 
                        anoise.mean=0, inoise.mean=0, verbose = TRUE)
 multiseq_plot(mylist=list(init.seq, noise.seq), id.names = c("ref", "noise"))
+

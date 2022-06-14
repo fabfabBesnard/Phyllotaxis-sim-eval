@@ -90,7 +90,7 @@ make_refseq=function(N, #length of the sequence
     ## Natural Permutation; Step1: Generate organ permutations
     organ.idx=seq(N+3)-1 #N+1 organs + an organ before (N°0) + an organ after (censored permutations)
     #Natural permutation is a random Bernoulli variable on each organ: =1 means that the organ is permuted with the next organ
-    permut.events=rbinom(N+2, 1, permutation.frequency) #idx of perumtation can range from organ idx '0' to 'N+1', so N+2 values are possible
+    permut.events=rbinom(N+2, 1, permutation.frequency) #idx of permutation can range from organ idx '0' to 'N+1', so N+2 values are possible
     
     # For debug:
     # if (verbose){

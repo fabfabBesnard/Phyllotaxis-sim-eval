@@ -34,12 +34,13 @@ if (source == "re-use data"){
   
   ## Initial sequence (e.g. biological real values)
   ##Case1: Completely simulated values
-  N1=19
+  N1=14
   alpha=137.5
   a_sd=18.5 #biological/natural gaussian noise on angle values
   i_Gsd=0.8 #biological/natural gaussian noise on internode values
   i_noise_pct=75 #scale the biological/natural noise on internode relative to the average internode length
-  seq=make_refseq(N1, alpha, a_sd, i_Gsd, i_noise_pct)
+  seq=make_refseq(N=N1, alpha=alpha, a_sd=a_sd, 
+                  i_Gsd=i_Gsd, i_noise_pct=i_noise_pct)
   listN1=make_align_list(N1)
   #Case2: Import sequence values directly from a file
   #seq=read.csv("reference_sequences.csv")
@@ -50,13 +51,15 @@ if (source == "re-use data"){
   ##Main parameters of the scenario
   seg_errors=TRUE #whether the initial seq will be affected or not by segmentation errors
   permutation=FALSE #whether close organs can be permuted in the test sequence only
-  Noise_or_Measures="Measures" #[Noise or Measures]"Noise": test sequence is derived from ref seq with noise ; "measures": both ref and test sequences are a measure (with "noise") a the same sequence.
+  Noise_or_Measures="Noise" #[Noise or Measures]"Noise": test sequence is derived from ref seq with noise ; "measures": both ref and test sequences are a measure (with "noise") a the same sequence.
   
   #Other parameters linked to main parameters
   ## Segmentation Errors: 
   if (seg_errors){
     #Examples of segmentation errors
-    
+    # GAIN=c(3,3,8)
+    LOSS=c(3,6) #LOSS=c(21,22,23,24)
+
     #Note: overlapping position (merge/split)
     # GAIN=c(15)
     # LOSS=c(15)
@@ -82,15 +85,15 @@ if (source == "re-use data"){
     # LOSS=c(1,2,3,8,18, 24, 25, 26)
     
     # #Note: Isolated errors in the middle
-     GAIN=c(10,15)
-     LOSS=c(8,18)
+     # GAIN=c(10,15)
+     # LOSS=c(8,18)
     
     #Note: Random segmentation errors
-    # nb_gain=2 #choose the nber of organs gained
-    # nb_loss=3 #choose nber of organs lost
-    # GAIN=round(runif(nb_gain,min=1, max=(N1+2)), digits = 0)
-    # GAIN=GAIN[order(GAIN)]
-    # LOSS =round(runif(nb_loss,min=1, max=N1+1), digits = 0)
+    nb_gain=2 #choose the nber of organs gained
+    #nb_loss=3 #choose nber of organs lost
+    GAIN=round(runif(nb_gain,min=1, max=(N1+2)), digits = 0)
+    GAIN=GAIN[order(GAIN)]
+    # LOSS=round(runif(nb_loss,min=1, max=N1+1), digits = 0)
     # LOSS=LOSS[order(LOSS)]
     
     #Note: it also possible to define GAIN and LOSS as null (equivalent to setting seg_errors=FALSE)
@@ -98,8 +101,8 @@ if (source == "re-use data"){
     #LOSS=NULL
   }
   if (Noise_or_Measures == "Noise"){
-    sd_noise_level = c(0.5, 0.5)
-    sd_noise_scale = "sd" # "sd", "mean" or absolute
+    sd_noise_level = c(0.25, 0.25)
+    sd_noise_scale = "mean" # "sd", "mean" or absolute
     mean_noise_bias = c(0, 0)
   }
   if (permutation){
