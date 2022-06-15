@@ -9,8 +9,11 @@ This readme explains:
 Some reference to install R inside the docker image: https://towardsdatascience.com/creating-sandbox-environments-for-r-with-docker-def54e3491a3
 the rocker project: https://github.com/rocker-org/rocker
 
-#Installing R and bash kernels in Jupyter:
+### Installing R and bash kernels in Jupyter:
 https://evodify.com/python-r-bash-jupyter-notebook/
+### Install sm-dtw in teh docker via miniconda
+https://linuxhandbook.com/dockerize-python-apps/
+
 
 ## Using jupyter notebook inside a docker:
 https://simplernerd.com/docker-jupyter-notebook/
@@ -30,4 +33,4 @@ docker run -v "$(pwd):/myapp/Phyllotaxis-sim-eval" -p 8888:8888 -it physimev:tes
 #Outside the docker, start your browser:
 2. enter the url with token:"http://127.0.0.1:8888/?token=....." or directly click on it
 3. select the correct kernel (R, bash or python)
-4. 
+4. run the notebook !

@@ -11,36 +11,35 @@ LABEL org.opencontainers.image.licenses="GPL-2.0-or-later" \
 
 # Make ~/.R 
 RUN mkdir -p $HOME/.R
-# $HOME doesn't exist in the COPY shell, so be explicit 
-#COPY R/Makevars /root/.R/Makevars
 
-#Install R + packages: optparse, ggplot2, reshape2, gridExtra, IRkernel (for Jupyter notebooks)
-RUN apt-get update -qq \
-    && apt-get -y install \
-    liblzma-dev \
-    libbz2-dev \
-    clang  \
-    ccache \
-    default-jdk \
-    default-jre \
-    && R CMD javareconf \
-    && install2.r --error \
-        ggstance ggrepel ggthemes \
-        ###My packages are below this line
-        optparse ggplot2 reshape2 gridExtra IRkernel \
-    && rm -rf /tmp/downloaded_packages/ /tmp/*.rds \
-    && rm -rf /var/lib/apt/lists/*
-
-# Build a context directory (e.g.: https://newbedev.com/what-is-app-working-directory-for-a-dockerfile)
-WORKDIR /myapp
 # Change Shell to 'bash', default is 'sh'
 SHELL [ "/bin/bash", "-c" ]
 
-# Requirements / Installations :python3 (tested 3.8) + pip + Jupyter Notebooks with bash and R kernel
-RUN apt-get update && \
-    apt install git -y && \
+# Main Installs
+#       - 'apt-get' installs (misc programs + python3)
+#       - R + R packages installs (optparse, ggplot2, reshape2, gridExtra, IRkernel for Jupyter notebooks)
+#       - pip installs: jupyter notebooks and bash+R kernels
+RUN apt-get update -qq && \
     apt install python3 -y && \
-    apt-get install python3-pip -y && \
+    apt-get -y --no-install-recommends install \
+        liblzma-dev \
+        libbz2-dev \
+        clang  \
+        ccache \
+        g++ \
+        gcc \
+        default-jdk \
+        default-jre \
+        git \
+        wget \
+        python3-pip && \
+    R CMD javareconf && \
+    install2.r --error \
+        ggstance ggrepel ggthemes \
+        ###My packages are below this line
+        optparse ggplot2 reshape2 gridExtra IRkernel && \
+    rm -rf /tmp/downloaded_packages/ /tmp/*.rds && \
+    rm -rf /var/lib/apt/lists/*  && \
     python3 -m pip install --upgrade pip && \
     pip install notebook && \
     pip install ipykernel && \
@@ -48,7 +47,25 @@ RUN apt-get update && \
     python3 -m bash_kernel.install && \
     R -e "IRkernel::installspec()"
 
-#Install sm-dtw from sources
-RUN cd /myapp && git clone https://github.com/romi/dtw.git && \
-    cd dtw &&\
-    python3 -m pip install .
+# Build a context directory (e.g.: https://newbedev.com/what-is-app-working-directory-for-a-dockerfile)
+WORKDIR /myapp
+
+# Conda install for sm-dtw: create a virtual environment called "dtw" with miniconda
+# the sm-dtw is installed in this environment using the conda packaging designed for this program
+# This virtual environment will be activated automatically at start in the container
+ENV PATH="/root/miniconda3/bin:${PATH}"
+ARG PATH="/root/miniconda3/bin:${PATH}"
+RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
+    && mkdir /root/.conda \
+    && bash Miniconda3-latest-Linux-x86_64.sh -b \
+    && rm -f Miniconda3-latest-Linux-x86_64.sh \
+    && echo "Running $(conda --version)" && \
+    conda init bash && \
+    . /root/.bashrc && \
+    conda update conda && \
+    conda env create -f conda/env/dtw.yaml && \
+    conda activate sm-dtw && \
+    git clone https://github.com/romi/dtw.git && \
+    git clone https://github.com/fabfabBesnard/Phyllotaxis-sim-eval.git && \
+    cd dtw && \
+    python -m pip install -e .
