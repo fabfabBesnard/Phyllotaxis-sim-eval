@@ -68,6 +68,8 @@ RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
     cd dtw && \
     conda env create -f conda/env/dtw.yaml && \
     conda activate dtw && \
-    python -m pip install -e .
+    python -m pip install -e . && \
+    conda install ipykernel && \
+    ipython kernel install --user --name=dtw
 
 RUN echo 'conda activate dtw' >> /root/.bashrc
