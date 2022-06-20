@@ -25,11 +25,14 @@ docker run -p 8888:8888 -it roboticsmicrofarms/sm-dtw_demo:latest bash
 #note: '/myapp' is the starting workfolder inside the Docker image
 
 ### Inside the container, serve the notebooks:
-1. root@aa7632c1fc29:/myapp#jupyter notebook Phyllotaxis-sim-eval/notebooks --ip 0.0.0.0 --no-browser --allow-root
-#Outside the docker, start your browser:
-2. enter the url with token:"http://127.0.0.1:8888/?token=....." or directly click on it
-3. select the correct kernel (R, bash or python)
-4. run the notebook !
+1. Enter the following command after the running container's prompt (which should be something like: `root@aa7632c1fc29:/myapp#`):
+```
+jupyter notebook Phyllotaxis-sim-eval/notebooks/docker_run --ip 0.0.0.0 --no-browser --allow-root
+```
+2. Outside the docker, start your browser
+3. enter the url with token:"http://127.0.0.1:8888/?token=....." or directly Ctrl+click on it
+4. select the correct kernel (R, bash or python)
+5. run the notebook !
 
 ### Troobleshooting
 1. Docker external connectivity
@@ -46,7 +49,7 @@ ERRO[0000] error waiting for container: context canceled
 - find the process that is listening to the port with the command `lsof -i:8888` and consider killing that process if it is safe (`kill $(lsof -t -i:"8888")`)
 - if nothing works... shut down your computer  (all process connected to the port should be stopped) and re-start !
 
-2. *"When running the docker, R starts directly"*: you forget `bash` at the end of the start command `docker run -it roboticsmicrofarms/sm-dtw_demo:latest bash`
+2. *"When running the docker, R starts directly"*: you probably forgot `bash` at the end of the start command `docker run -it roboticsmicrofarms/sm-dtw_demo:latest bash`
 
 3. Jupyter notebook connection
 **Cause of the problem**: another server is running on the same port 
@@ -60,10 +63,10 @@ ERRO[0000] error waiting for container: context canceled
 docker build -t imagename:tagname . #(e.g: your_docker_account/repo:latest so that you can push directly. Do not forget the '.' at the end)
 ```
 2. Up-dating the repo `Phyllotaxis-sim-eval` in the docker build
-   - for testing, the simplest & fastest is to substitute your local repo of `Phyllotaxis-sim-eval` by mounting it when starting the docker container:
-   - ```
-   - docker run -v path/to/your/local/repo:/myapp/Phyllotaxis-sim-eval -p 8888:8888 -it roboticsmicrofarms/sm-dtw_phyllotaxis:latest bash
-   - ```
+   - for testing (e.g. developers), the simplest & fastest is to substitute your local repo of `Phyllotaxis-sim-eval` by mounting it when starting the docker container:
+```
+docker run -v path/to/your/local/repo:/myapp/Phyllotaxis-sim-eval -p 8888:8888 -it roboticsmicrofarms/sm-dtw_phyllotaxis:latest bash
+```
 ### testing that everything works inside the docker
 Start a docker container from the image in the interactive mode
 docker run -it my_new_build:mytag bash
