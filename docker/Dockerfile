@@ -66,6 +66,7 @@ RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
     git clone https://github.com/romi/dtw.git && \
     git clone https://github.com/fabfabBesnard/Phyllotaxis-sim-eval.git && \
     cd dtw && \
+    git checkout develop && \
     conda env create -f conda/env/dtw.yaml && \
     conda activate dtw && \
     python -m pip install -e . && \
