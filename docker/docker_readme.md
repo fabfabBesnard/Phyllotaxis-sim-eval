@@ -74,9 +74,9 @@ docker build -t imagename:tagname . #(e.g: your_docker_account/repo:latest so th
  ```
 docker run -v path/to/your/local/repo:/myapp/Phyllotaxis-sim-eval -p 8888:8888 -it roboticsmicrofarms/sm-dtw_phyllotaxis:latest bash # you can add additional volume like a docker_sandbox by entering -v option several times
 ```
-   - For now, you must either update the main branch by merging you work or modigy the docker file to point to your current branch. Use --no-cache option for building and force the update of the git cloned repo.
+   -However, *if your changes impact the docker itself*, you must either update the main branch by merging you work or modify the `Dockefile` to point to your current branch. Use `--no-cache` option for building and force the update of the git cloned repo.
 ```
-docker build --noc-cache -t imagename:tagname .
+docker build --no-cache -t imagename:tagname .
 ```
 
 3. testing that everything works inside the docker
