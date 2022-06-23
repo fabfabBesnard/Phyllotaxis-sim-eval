@@ -26,7 +26,6 @@ pkgTest <- function(x){
   }
 }
 pkgTest("gridExtra")
-
 ##########################
 ## Convert dtw results  ##
 ##########################
@@ -87,7 +86,7 @@ convert_dtw_results=function(my_res, seq.ref, seq.test, verbose=TRUE){
     out_subset=subset(out, PlantID==id)
     plant.seq.ref=subset(seq.ref, PlantID==id)
     plant.seq.test=subset(seq.test, PlantID==id)
-    
+    # print(out_subset) #for debug only
     #case of a M event -> add a row before, ref duplicated and new test (an idx was missing)
     M_idx=which(out_subset$dtw == "M")
     if (length(M_idx > 0)){
