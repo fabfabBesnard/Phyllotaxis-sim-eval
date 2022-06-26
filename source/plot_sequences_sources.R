@@ -7,7 +7,7 @@
 #### Distributed without any warranty.
 ###########################################################################
 #started 2020-09-20
-# last edit: 2021-11-17
+# last edit: 2022-06-25
 #Version v0
 
 ##Content
@@ -30,38 +30,12 @@ suppressPackageStartupMessages(require(reshape2))
 pkgTest("gridExtra")
 suppressPackageStartupMessages(require(gridExtra))
 
-#################################
-## Plotting a single sequence  ##
-#################################
-seq_plot=function(seq, angle_ref=137){
-  #Plot on top of each other angles and internode values (y-axis) function of interval order (xaxis)
-  #seq must be a dataframe containing at least three fields: $intervals / $angles / $internodes
-  #angle_ref [input]: value of the horizontal dashed line plotted in the divergence angle plot (default=137°)
-  
-  seq.long=melt(seq, id.vars = c("intervals"))
-  #grid.arrange solution:
-  p1=ggplot(subset(seq.long, variable=="angles"), aes(x=intervals, y=value))+
-    geom_point()+geom_line()+
-    geom_hline(yintercept=angle_ref, linetype="dashed")+
-    ylim(0,360)+ylab("ANGLES")+xlab(NULL)+
-    theme_minimal()+
-    theme(axis.title.y = element_text(margin = margin(t = 0, r = 10, b = 0, l = 0)))
-  
-  p2=ggplot(subset(seq.long, variable=="internodes"), aes(x=intervals, y=value))+
-    geom_point()+geom_line()+
-    ylab("INTERNODES")+xlab("interval order (base -> top)")+
-    theme_minimal()+
-    theme(axis.title.y = element_text(margin = margin(t = 0, r = 15, b = 0, l = 0)))
-  
-  grid.arrange(p1, p2, nrow=2)
-}
-
-###########################################################################
-# Plotting several unaligned sequences / or 2 sequences with realignment
-###########################################################################
+########################################
+## Generic function to check input data
+########################################
 check_format_seq_df=function(seq.df, force.convert=TRUE, verbose=FALSE){
-    #DESCRIPTION: check that a sequence dataframe is formatted with the following three fields
-    #$intervals, $angles, $internodes
+  #DESCRIPTION: check that a sequence dataframe is formatted with the following three fields
+  #$intervals, $angles, $internodes
   #seq.df [input]: dataframe of phyllotaxis sequences for a plant
   #force.convert [input]: TRUE/FALSE, if TRUE try to convert the input into the expected format
   #verbose [input]: TRUE/FALSE, increase verbosity
@@ -99,7 +73,7 @@ check_format_seq_df=function(seq.df, force.convert=TRUE, verbose=FALSE){
           warning("Inappropriate format for intervals. True intervals will be computed")
           seq.df$intervals=1:nrow(seq.df)
         }
-        }
+      }
       else { stop(paste("Expected field names 'intervals/angles/internodes' were not found in", deparse(substitute(seq.df)), "Aborting program")) }
     } else {
       if (sum(found.cols != c(0,0,0))==3){
@@ -109,7 +83,7 @@ check_format_seq_df=function(seq.df, force.convert=TRUE, verbose=FALSE){
           print(paste("Unusual field names were found for", deparse(substitute(seq.df)), ":"))
           print(colnames(seq.df))}
         if (force.convert){
-            warning("The three expected columns 'intervals/angles/internodes' were automatically guessed, please check that no errors mare made.")
+          warning("The three expected columns 'intervals/angles/internodes' were automatically guessed, please check that no errors mare made.")
           seq.df=rbind.data.frame(seq.df[,found.cols[1]], seq.df[,found.cols[2]], seq.df[,found.cols[3]])
           colnames(seq.df)=c("intervals", "angles", "internodes") }
         else { #do not try force conversion and abort
@@ -127,17 +101,49 @@ check_format_seq_df=function(seq.df, force.convert=TRUE, verbose=FALSE){
             colnames(seq.df)=c("intervals", "angles", "internodes") }
           else{
             stop(paste("Expected field names 'intervals/angles/internodes' were not found in", deparse(substitute(seq.df)), "Aborting program"))}
-          }
+        }
         else {
           #in all other cases, just abort the program
           stop(paste("Expected field names 'intervals/angles/internodes' were not found in", deparse(substitute(seq.df)), "Aborting program"))}
       }
       
-      }
+    }
   }
   return(seq.df)
 }#end of function check_format_seq_df
 
+
+#################################
+## Plotting a single sequence  ##
+#################################
+seq_plot=function(seq, angle_ref=137, verbose=TRUE){
+  #Plot on top of each other angles and internode values (y-axis) function of interval order (xaxis)
+  #seq must be a dataframe containing at least three fields: $intervals / $angles / $internodes
+  #angle_ref [input]: value of the horizontal dashed line plotted in the divergence angle plot (default=137°)
+  
+  df=check_format_seq_df(seq, force.convert=TRUE, verbose = verbose)
+  
+  seq.long=melt(df, id.vars = c("intervals"))
+  #grid.arrange solution:
+  p1=ggplot(subset(seq.long, variable=="angles"), aes(x=intervals, y=value))+
+    geom_point()+geom_line()+
+    geom_hline(yintercept=angle_ref, linetype="dashed")+
+    ylim(0,360)+ylab("ANGLES")+xlab(NULL)+
+    theme_minimal()+
+    theme(axis.title.y = element_text(margin = margin(t = 0, r = 10, b = 0, l = 0)))
+  
+  p2=ggplot(subset(seq.long, variable=="internodes"), aes(x=intervals, y=value))+
+    geom_point()+geom_line()+
+    ylab("INTERNODES")+xlab("interval order (base -> top)")+
+    theme_minimal()+
+    theme(axis.title.y = element_text(margin = margin(t = 0, r = 15, b = 0, l = 0)))
+  
+  grid.arrange(p1, p2, nrow=2)
+}
+
+###########################################################################
+# Plotting several unaligned sequences / or 2 sequences with realignment
+###########################################################################
 multiseq_plot=function(mylist, align.df=NULL, prediction.eval= NULL, 
                        id.names=NULL, ref.first=TRUE, title=NULL, verbose=FALSE, 
                        angle_ref=137){
