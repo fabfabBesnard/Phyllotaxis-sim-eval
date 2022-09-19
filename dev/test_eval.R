@@ -102,8 +102,8 @@ if (source == "re-use data"){
     #LOSS=NULL
   }
   if (Noise_or_Measures == "Noise"){
-    sd_noise_level = c(0.25, 0.25)
-    sd_noise_scale = "mean" # "sd", "mean" or absolute
+    sd_noise_level = c(10, 3)
+    sd_noise_scale = "absolute" # "sd", "mean" or absolute
     mean_noise_bias = c(0, 0)
   }
   if (permutation){
@@ -183,7 +183,8 @@ if (source == "re-use data"){
   ######
   #Plotting for visual check
   #####
-  multiseq_plot(list(seq.ref, seq.test$values), align.df = seq.test$I, title="R simulation / ground truth")
+  multiseq_plot(list(seq.ref, seq.test$values), align.df = seq.test$I, 
+                id.names=c("ref", "test"), title="R simulation / ground truth")
   
   #####
   #2. write out tables (reference and test values for angles/internodes)
